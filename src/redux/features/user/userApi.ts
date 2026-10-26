@@ -82,6 +82,21 @@ export const userApi = baseApi.injectEndpoints({
         tagTypes.review,
         tagTypes.auditLog,
       ],
+      async onQueryStarted({ id, body }, { dispatch, getState, queryFulfilled }) {
+        const actor = getAuthState({ getState }).user;
+        try {
+          await queryFulfilled;
+          if (
+            actor?.id === id &&
+            body.role &&
+            body.role !== actor.role &&
+            getAuthState({ getState }).user?.id === id
+          )
+            dispatch(logout());
+        } catch {
+          return;
+        }
+      },
     }),
     deleteUser: builder.mutation<DeleteUserResponse, DeleteUserParams["id"]>({
       query: (id) => ({ url: `${URL}/${encodeURIComponent(id)}`, method: "DELETE" }),

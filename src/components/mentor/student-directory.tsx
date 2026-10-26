@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/dialog";
 import { formatDate } from "@/lib/student-submissions";
 
-function Directory() {
+function Directory({ workspace }: { workspace: "mentor" | "admin" }) {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [search, setSearch] = useState("");
@@ -87,7 +87,7 @@ function Directory() {
             </button>
             <Link
               className="text-primary hover:underline"
-              href={`/mentor/students/${row.original.userId}`}
+              href={`/${workspace}/students/${row.original.userId}`}
             >
               Manage account
             </Link>
@@ -95,7 +95,7 @@ function Directory() {
         ),
       },
     ],
-    [],
+    [workspace],
   );
   return (
     <>
@@ -196,7 +196,9 @@ function Directory() {
                 {selected.user.isActive ? "Active" : "Inactive"}
               </Badge>
               <Button asChild className="w-full">
-                <Link href={`/mentor/students/${selected.userId}`}>Manage Student account</Link>
+                <Link href={`/${workspace}/students/${selected.userId}`}>
+                  Manage Student account
+                </Link>
               </Button>
             </div>
           )}
@@ -206,7 +208,7 @@ function Directory() {
   );
 }
 
-function Accounts() {
+function Accounts({ workspace }: { workspace: "mentor" | "admin" }) {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [search, setSearch] = useState("");
@@ -237,7 +239,7 @@ function Accounts() {
         cell: ({ row }) => (
           <Link
             className="break-all font-medium text-primary hover:underline"
-            href={`/mentor/students/${row.original.id}`}
+            href={`/${workspace}/students/${row.original.id}`}
           >
             {row.original.email}
           </Link>
@@ -275,14 +277,14 @@ function Accounts() {
         cell: ({ row }) => (
           <Link
             className="text-primary hover:underline"
-            href={`/mentor/students/${row.original.id}`}
+            href={`/${workspace}/students/${row.original.id}`}
           >
             Manage account
           </Link>
         ),
       },
     ],
-    [],
+    [workspace],
   );
   return (
     <>
@@ -362,7 +364,11 @@ function Accounts() {
   );
 }
 
-export default function StudentDirectory() {
+export default function StudentDirectory({
+  workspace = "mentor",
+}: {
+  workspace?: "mentor" | "admin";
+}) {
   const [tab, setTab] = useState<"directory" | "accounts">("directory");
   return (
     <>
@@ -389,7 +395,11 @@ export default function StudentDirectory() {
       </div>
       <Card className="rounded-xl border-slate-200 shadow-sm">
         <CardContent className="p-4 sm:p-6">
-          {tab === "directory" ? <Directory /> : <Accounts />}
+          {tab === "directory" ? (
+            <Directory workspace={workspace} />
+          ) : (
+            <Accounts workspace={workspace} />
+          )}
         </CardContent>
       </Card>
     </>

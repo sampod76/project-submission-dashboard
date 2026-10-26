@@ -1,5 +1,4 @@
 import { baseApi } from "../../api/baseApi";
-import { legacyUnavailable } from "../../api/legacy-unavailable";
 import { tagTypes } from "@/redux/tag-types";
 import { getAuthState, isTokenResponse } from "../../api/auth-session";
 import { login, logout } from "./authSlice";
@@ -11,7 +10,6 @@ import type {
   LoginBody,
   LoginResponse,
   LogoutResponse,
-  ProfileResponse,
   RegisterBody,
   RegisterResponse,
   RefreshTokenResponse,
@@ -84,8 +82,6 @@ export const authApi = baseApi.injectEndpoints({
     changePasswordLegacy: builder.mutation<ChangePasswordLegacyResponse, ChangePasswordLegacyBody>({
       query: (body) => ({ url: "/auth/change-password", method: "POST", body }),
     }),
-
-    getProfile: builder.query<ProfileResponse, void>({ queryFn: legacyUnavailable }),
   }),
 });
 
@@ -97,7 +93,6 @@ export const {
   useLogoutMutation,
   useGetAuthProfileQuery,
   useChangePasswordLegacyMutation,
-  useGetProfileQuery,
 } = authApi;
 
 export { useChangePasswordMutation } from "../user/userApi";

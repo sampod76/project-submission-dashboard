@@ -34,7 +34,7 @@ export default function AppHeader({
       ? "/student/profile"
       : user?.role === "MENTOR"
         ? "/mentor/profile"
-        : "/dashboard/profile";
+        : "/admin/profile";
   const displayName = user?.name || user?.email || "User";
   const displayRole = user?.role || "User";
   async function handleLogout() {
@@ -96,7 +96,7 @@ export default function AppHeader({
                     ? "/student/profile#password"
                     : user?.role === "MENTOR"
                       ? "/mentor/settings"
-                      : "/dashboard/settings",
+                      : "/admin/settings",
                 )
               }
             >

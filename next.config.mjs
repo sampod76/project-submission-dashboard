@@ -1,4 +1,4 @@
-import { PHASE_PRODUCTION_BUILD } from "next/constants.js";
+import { PHASE_DEVELOPMENT_SERVER, PHASE_PRODUCTION_BUILD } from "next/constants.js";
 
 const nextConfig = {
   eslint: { ignoreDuringBuilds: false },
@@ -52,5 +52,9 @@ export default (phase) => {
       );
     }
   }
-  return nextConfig;
+  return {
+    ...nextConfig,
+    // Keep hot-reload chunks separate from production builds running in parallel.
+    distDir: phase === PHASE_DEVELOPMENT_SERVER ? ".next-dev" : ".next",
+  };
 };

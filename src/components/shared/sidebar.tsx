@@ -1,6 +1,6 @@
 "use client";
 
-import { sidebarData } from "@/constants";
+import { adminNavigation } from "@/constants/admin-navigation";
 import { useAppSelector } from "@/redux/hooks";
 import type { SidebarItem as ISidebarItem } from "@/types";
 
@@ -23,6 +23,7 @@ interface SidebarProps {
   onMenuSelect?: () => void;
   student?: boolean;
   mentor?: boolean;
+  admin?: boolean;
 }
 
 interface SidebarMenuItem {
@@ -74,10 +75,6 @@ const getSelectedMenuItem = (items: SidebarMenuItem[], pathname: string) => {
         return true;
       }
 
-      if (url === "/dashboard") {
-        return false;
-      }
-
       return pathname.startsWith(`${url}/`);
     })
     .sort((a, b) => {
@@ -110,10 +107,10 @@ function SidebarLinks({
               aria-current={item.key === selectedKey ? "page" : undefined}
               aria-label={collapsed ? String(item.label) : undefined}
               onClick={onMenuSelect}
-              className={`flex h-10 items-center gap-3 rounded-lg px-4 text-[15px] transition-colors hover:bg-blue-50 hover:text-primary ${item.key === selectedKey ? "bg-[#eaf3ff] font-medium text-primary" : "text-foreground"} ${collapsed ? "justify-center px-0" : ""}`}
+              className={`flex h-10 items-center gap-3 rounded-lg px-4 text-sm transition-colors hover:bg-blue-50 hover:text-primary ${item.key === selectedKey ? "bg-[#eaf3ff] font-medium text-primary" : "text-foreground"} ${collapsed ? "justify-center px-0" : ""}`}
             >
-              <span className="text-lg">{item.icon}</span>
-              {!collapsed && item.label}
+              <span className="h-5 w-5 shrink-0 [&>svg]:h-5 [&>svg]:w-5">{item.icon}</span>
+              {!collapsed && <span className="truncate">{item.label}</span>}
             </Link>
           ) : (
             <details open={Boolean(item.children?.some((child) => child.key === selectedKey))}>
@@ -143,13 +140,14 @@ export default function Sidebar({
   onMenuSelect,
   student = false,
   mentor = false,
+  admin = false,
 }: SidebarProps) {
   const pathname = usePathname();
 
   const user = useAppSelector((state) => state.auth.user);
 
   const { logout, isLoggingOut } = useAuth();
-  const sidebarGroups = (student ? studentNavigation : mentor ? mentorNavigation : sidebarData)
+  const sidebarGroups = (student ? studentNavigation : mentor ? mentorNavigation : adminNavigation)
     .map((group) => ({
       ...group,
       menuItems: buildMenuItems(group.items, user?.role),
@@ -175,7 +173,7 @@ export default function Sidebar({
       }}
     >
       <Link
-        href={student ? "/student/dashboard" : mentor ? "/mentor/dashboard" : "/dashboard"}
+        href={student ? "/student/dashboard" : mentor ? "/mentor/dashboard" : "/admin/dashboard"}
         aria-label="Dashboard home"
         onClick={onMenuSelect}
         className="logo flex h-20 shrink-0 items-center justify-center py-4"
@@ -221,7 +219,7 @@ export default function Sidebar({
           </div>
         ))}
       </div>
-      {(student || mentor) && (
+      {(student || mentor || admin) && (
         <div className="border-t p-3">
           <Button
             variant="ghost"

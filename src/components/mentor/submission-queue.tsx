@@ -20,7 +20,13 @@ import {
 import { formatDate, statusLabel, submissionStatuses } from "@/lib/student-submissions";
 import { useDebounced } from "@/hooks/use-debounce";
 
-export default function SubmissionQueue({ history = false }: { history?: boolean }) {
+export default function SubmissionQueue({
+  history = false,
+  workspace = "mentor",
+}: {
+  history?: boolean;
+  workspace?: "mentor" | "admin";
+}) {
   const searchParams = useSearchParams();
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
@@ -58,7 +64,7 @@ export default function SubmissionQueue({ history = false }: { history?: boolean
         cell: ({ row }) => (
           <Link
             className="font-medium text-slate-900 hover:text-primary hover:underline"
-            href={`/mentor/submissions/${row.original.id}${history ? "#reviews" : ""}`}
+            href={`/${workspace}/submissions/${row.original.id}${history ? "#reviews" : ""}`}
           >
             {row.original.projectName}
           </Link>
@@ -72,7 +78,7 @@ export default function SubmissionQueue({ history = false }: { history?: boolean
           <div>
             <Link
               className="font-medium hover:text-primary"
-              href={`/mentor/students/${s.student.userId}`}
+              href={`/${workspace}/students/${s.student.userId}`}
             >
               {s.student.firstName} {s.student.lastName}
             </Link>
@@ -118,7 +124,7 @@ export default function SubmissionQueue({ history = false }: { history?: boolean
           ) : (
             <Link
               className="text-primary hover:underline"
-              href={`/mentor/submissions/${row.original.id}#reviews`}
+              href={`/${workspace}/submissions/${row.original.id}#reviews`}
             >
               View review history
             </Link>
@@ -131,14 +137,14 @@ export default function SubmissionQueue({ history = false }: { history?: boolean
         cell: ({ row }) => (
           <Link
             className="text-primary hover:underline"
-            href={`/mentor/submissions/${row.original.id}${history ? "#reviews" : ""}`}
+            href={`/${workspace}/submissions/${row.original.id}${history ? "#reviews" : ""}`}
           >
             {row.original.status === "PENDING" ? "Review" : "View"}
           </Link>
         ),
       },
     ],
-    [history],
+    [history, workspace],
   );
   return (
     <>

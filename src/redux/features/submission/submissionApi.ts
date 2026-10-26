@@ -47,13 +47,15 @@ export const submissionApi = baseApi.injectEndpoints({
       UpdateSubmissionParams & { body: UpdateSubmissionBody }
     >({
       query: ({ id, body }) => ({ url: `${URL}/${encodeURIComponent(id)}`, method: "PATCH", body }),
-      // Editing a PENDING submission changes its content, not its status or counts.
-      invalidatesTags: [tagTypes.submission],
+      invalidatesTags: (result, error) =>
+        result || error?.status === 409 ? [tagTypes.submission, tagTypes.submissionStatistics] : [],
     }),
     deleteSubmission: builder.mutation<DeleteSubmissionResponse, DeleteSubmissionParams["id"]>({
       query: (id) => ({ url: `${URL}/${encodeURIComponent(id)}`, method: "DELETE" }),
-      invalidatesTags: (result) =>
-        result ? [tagTypes.submission, tagTypes.submissionStatistics, tagTypes.review] : [],
+      invalidatesTags: (result, error) =>
+        result || error?.status === 409
+          ? [tagTypes.submission, tagTypes.submissionStatistics, tagTypes.review]
+          : [],
     }),
   }),
 });

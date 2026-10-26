@@ -72,7 +72,6 @@ export type DoctorsResponse = TResponse<TDoctor[]> & {
   meta: TMeta;
 };
 
-
 export type DoctorDetails = Pick<
   TDoctor,
   | "_id"

@@ -13,10 +13,12 @@ export default function DashLayout({
   children,
   student = false,
   mentor = false,
+  admin = false,
 }: {
   children: React.ReactNode;
   student?: boolean;
   mentor?: boolean;
+  admin?: boolean;
 }) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -49,6 +51,7 @@ export default function DashLayout({
             <Sidebar
               student={student}
               mentor={mentor}
+              admin={admin}
               collapsed={false}
               isMobile
               onMenuSelect={() => setMobileOpen(false)}
@@ -59,6 +62,7 @@ export default function DashLayout({
         <Sidebar
           student={student}
           mentor={mentor}
+          admin={admin}
           collapsed={collapsed}
           onMenuSelect={() => setMobileOpen(false)}
         />
@@ -77,11 +81,7 @@ export default function DashLayout({
           mobileOpen={mobileOpen}
           setMobileOpen={setMobileOpen}
           pageTitle={
-            student
-              ? "Student workspace"
-              : mentor
-                ? "Mentor workspace"
-                : "Project Submission Dashboard"
+            student ? "Student workspace" : mentor ? "Mentor workspace" : "Admin workspace"
           }
         />
         <main
@@ -92,16 +92,18 @@ export default function DashLayout({
             overflow: "hidden",
           }}
         >
-          {student || mentor ? (
+          {
             <nav
               aria-label="Breadcrumb"
               className="flex flex-wrap items-center gap-2 border-b bg-white px-4 py-3 text-sm text-muted-foreground sm:px-8"
             >
               <Link
                 className="hover:text-primary"
-                href={mentor ? "/mentor/dashboard" : "/student/dashboard"}
+                href={
+                  admin ? "/admin/dashboard" : mentor ? "/mentor/dashboard" : "/student/dashboard"
+                }
               >
-                {mentor ? "Mentor" : "Student"}
+                {admin ? "Admin" : mentor ? "Mentor" : "Student"}
               </Link>
               {pathname
                 .split("/")
@@ -112,14 +114,16 @@ export default function DashLayout({
                     {index === parts.length - 1 ? (
                       <span aria-current="page">
                         {part === "new"
-                          ? "Submit Project"
+                          ? pathname.includes("/submissions/")
+                            ? "Submit Project"
+                            : "Create"
                           : /^[0-9a-f-]{36}$/i.test(part)
                             ? "Details"
                             : part.charAt(0).toUpperCase() + part.slice(1)}
                       </span>
                     ) : (
                       <Link
-                        href={`/${mentor ? "mentor" : "student"}/${parts.slice(0, index + 1).join("/")}`}
+                        href={`/${admin ? "admin" : mentor ? "mentor" : "student"}/${parts.slice(0, index + 1).join("/")}`}
                       >
                         {part.charAt(0).toUpperCase() + part.slice(1)}
                       </Link>
@@ -127,12 +131,7 @@ export default function DashLayout({
                   </span>
                 ))}
             </nav>
-          ) : (
-            <p className="border-b border-sky-100 bg-sky-50 px-4 py-2 text-sm text-slate-600">
-              Legacy Doctor/Patient functionality. Project Submission features and backend
-              integration are planned for Phase 2.
-            </p>
-          )}
+          }
           {children}
         </main>
       </div>

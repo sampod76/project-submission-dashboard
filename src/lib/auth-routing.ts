@@ -4,4 +4,4 @@ export const dashboardForRole = (role?: Role) =>
     ? "/student/dashboard"
     : role === "MENTOR"
       ? "/mentor/dashboard"
-      : "/dashboard";
+      : "/admin/dashboard";

@@ -1,9 +1,6 @@
 "use client";
 import Link from "next/link";
-import {
-  useGetMySubmissionsQuery,
-  useGetSubmissionStatisticsQuery,
-} from "@/redux/features/submission/submissionApi";
+import { useGetMySubmissionsQuery } from "@/redux/features/submission/submissionApi";
 import { useAppSelector } from "@/redux/hooks";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -17,24 +14,21 @@ import { formatDate } from "@/lib/student-submissions";
 
 export default function StudentDashboard() {
   const user = useAppSelector((state) => state.auth.user);
-  const statistics = useGetSubmissionStatisticsQuery(undefined, {
-    refetchOnMountOrArgChange: true,
-  });
   const recent = useGetMySubmissionsQuery(
     { page: 1, limit: 5 },
     { refetchOnMountOrArgChange: true },
   );
-  const counts = statistics.currentData?.data;
+  const pending = useGetMySubmissionsQuery({ page: 1, limit: 1, status: "PENDING" });
+  const approved = useGetMySubmissionsQuery({ page: 1, limit: 1, status: "APPROVED" });
+  const rejected = useGetMySubmissionsQuery({ page: 1, limit: 1, status: "REJECTED" });
+  const revision = useGetMySubmissionsQuery({ page: 1, limit: 1, status: "REVISION_REQUIRED" });
+  // Filtered list metadata counts all owned matching projects, not this page's rows.
   const metrics = [
-    { label: "Total submissions", value: counts?.total, color: "bg-blue-50 text-blue-700" },
-    { label: "Pending", value: counts?.pending, color: "bg-amber-50 text-amber-700" },
-    { label: "Approved", value: counts?.approved, color: "bg-emerald-50 text-emerald-700" },
-    { label: "Rejected", value: counts?.rejected, color: "bg-rose-50 text-rose-700" },
-    {
-      label: "Revision required",
-      value: counts?.revisionRequired,
-      color: "bg-cyan-50 text-cyan-700",
-    },
+    { label: "Total submissions", query: recent, color: "bg-blue-50 text-blue-700" },
+    { label: "Pending", query: pending, color: "bg-amber-50 text-amber-700" },
+    { label: "Approved", query: approved, color: "bg-emerald-50 text-emerald-700" },
+    { label: "Rejected", query: rejected, color: "bg-rose-50 text-rose-700" },
+    { label: "Revision required", query: revision, color: "bg-cyan-50 text-cyan-700" },
   ];
   return (
     <>
@@ -47,29 +41,24 @@ export default function StudentDashboard() {
           </Button>
         }
       />
-      {statistics.isError && (
-        <div className="mb-4">
-          <RequestError
-            error={statistics.error}
-            retry={() => void statistics.refetch()}
-            busy={statistics.isFetching}
-          />
-        </div>
-      )}
       <div className="mb-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-        {metrics.map(({ label, value, color }) => (
+        {metrics.map(({ label, query, color }) => (
           <Card key={label} className="rounded-xl border-slate-200 shadow-sm">
             <CardContent className="p-5">
               <p className="text-sm text-muted-foreground">{label}</p>
-              {statistics.isError ? (
+              {query.isError ? (
                 <div className="mt-3">
-                  <span className="text-xs text-destructive">Unavailable</span>
+                  <RequestError
+                    error={query.error}
+                    busy={query.isFetching}
+                    retry={() => void query.refetch()}
+                  />
                 </div>
-              ) : statistics.isLoading ? (
+              ) : !query.currentData ? (
                 <ContentSkeleton rows={1} />
               ) : (
                 <p className={`mt-3 w-fit rounded-lg px-3 py-1 text-3xl font-semibold ${color}`}>
-                  {value ?? "—"}
+                  {query.currentData?.meta.total ?? "—"}
                 </p>
               )}
             </CardContent>

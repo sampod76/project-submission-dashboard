@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, type ReactNode } from "react";
+import { useId, type ReactElement, type ReactNode } from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { Label } from "./label";
 import { cn } from "@/lib/utils";
@@ -8,12 +8,14 @@ import { cn } from "@/lib/utils";
 export function Field({
   label,
   error,
+  description,
   children,
   className,
 }: {
   label: string;
   error?: string;
-  children: ReactNode;
+  description?: ReactNode;
+  children: ReactElement;
   className?: string;
 }) {
   const id = useId();
@@ -23,10 +25,19 @@ export function Field({
       <Slot
         id={id}
         aria-invalid={Boolean(error)}
-        aria-describedby={error ? `${id}-error` : undefined}
+        aria-describedby={
+          [description ? `${id}-description` : "", error ? `${id}-error` : ""]
+            .filter(Boolean)
+            .join(" ") || undefined
+        }
       >
         {children}
       </Slot>
+      {description && (
+        <p id={`${id}-description`} className="text-xs text-muted-foreground">
+          {description}
+        </p>
+      )}
       {error && (
         <p id={`${id}-error`} role="alert" className="text-sm text-destructive">
           {error}

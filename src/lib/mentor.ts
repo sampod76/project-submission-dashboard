@@ -4,7 +4,7 @@ import type { UpdateUserBody, UserRecord } from "@/types/user.types";
 import type { Role } from "@/types/common.types";
 
 export const canReviewSubmission = (submission: Pick<SubmissionRecord, "status">, role?: Role) =>
-  role === "MENTOR" && submission.status === "PENDING";
+  (role === "MENTOR" || role === "ADMIN") && submission.status === "PENDING";
 export const canManageStudent = (account: Pick<UserRecord, "role" | "isDeleted">) =>
   account.role === "STUDENT" && !account.isDeleted;
 export function studentAccountBody(

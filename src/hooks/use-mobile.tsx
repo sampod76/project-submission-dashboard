@@ -12,12 +12,9 @@ export function useMobile() {
       setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
     };
 
-
     checkIfMobile();
 
-
     window.addEventListener("resize", checkIfMobile);
-
 
     return () => {
       window.removeEventListener("resize", checkIfMobile);

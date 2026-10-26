@@ -3,18 +3,21 @@
 import RouteState from "@/components/shared/route-state";
 import React from "react";
 import { ErrorBoundary, type FallbackProps } from "react-error-boundary";
+import { useAppSelector } from "@/redux/hooks";
+import { dashboardForRole } from "@/lib/auth-routing";
 
 type ErrorBounderComProps = {
   children: React.ReactNode;
 };
 
 function Fallback({ resetErrorBoundary }: FallbackProps) {
+  const user = useAppSelector((state) => state.auth.user);
   return (
     <RouteState
       variant="dashboard"
       title="Unable to load this content"
       description="We encountered an unexpected error. Please try again or return to your dashboard."
-      homeHref="/dashboard"
+      homeHref={user ? dashboardForRole(user.role) : "/login"}
       homeLabel="Dashboard Home"
       reset={resetErrorBoundary}
     />

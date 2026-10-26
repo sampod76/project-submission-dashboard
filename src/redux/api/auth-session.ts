@@ -1,11 +1,11 @@
 import type { BaseQueryApi } from "@reduxjs/toolkit/query";
-import type { AuthState, AuthTokens } from "@/types/auth.types";
-import type { ApiResponse } from "@/types/common.types";
+import type { AuthState } from "@/types/auth.types";
+import type { LoginResponse, RefreshTokenResponse } from "@/types/auth.types";
 
 export const getAuthState = (api: Pick<BaseQueryApi, "getState">) =>
   (api.getState() as { auth: AuthState }).auth;
 
-export function isTokenResponse(value: unknown): value is ApiResponse<AuthTokens> {
+export function isTokenResponse(value: unknown): value is LoginResponse | RefreshTokenResponse {
   if (
     typeof value !== "object" ||
     value === null ||

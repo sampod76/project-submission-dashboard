@@ -1,6 +1,6 @@
 // Shared by the rendered images and early preloads so responsive requests match.
 export const authHeroImage = {
-  src: "/auth-banner.webp",
+  src: "/auth-banner.webp?v=d06e9ce06cf5",
   alt: "",
   width: 1536,
   height: 1024,

@@ -9,6 +9,7 @@ export const apiStatus = (error: unknown): number | undefined =>
     : undefined;
 
 export function apiErrorMessage(error: unknown, fallback: string): string {
+  if ((apiStatus(error) ?? 0) >= 500) return fallback;
   if (typeof error === "object" && error !== null && "data" in error) {
     const data = error.data;
     if (
@@ -52,7 +53,7 @@ export function mapFormError<T extends FieldValues>(
   if (apiStatus(error) === 409) {
     if (/email/i.test(message) && fields.includes("email" as Path<T>))
       setError("email" as Path<T>, {
-        message: "This email is already registered. Try signing in.",
+        message: "This email is already registered.",
       });
     if (/repository|repoUrl|repoFullName/i.test(message) && fields.includes("repoUrl" as Path<T>))
       setError("repoUrl" as Path<T>, { message });

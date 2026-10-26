@@ -61,7 +61,7 @@ export default function Page() {
           </div>
           <div className="mx-auto w-full max-w-lg lg:max-w-xl">
             <Image
-              src="/auth-banner.webp"
+              src="/auth-banner.webp?v=d06e9ce06cf5"
               alt="Project submission workspace illustration"
               width={1536}
               height={1024}

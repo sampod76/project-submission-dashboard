@@ -28,6 +28,7 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
+    ".next-dev/types/**/*.ts",
     "src",
     "src/global.d.ts"
   ],

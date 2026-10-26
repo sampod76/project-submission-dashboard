@@ -13,8 +13,11 @@ import {
   useUpdateUserStatusMutation,
 } from "@/redux/features/user/userApi";
 import type { UserRecord } from "@/types/user.types";
-import { canManageStudent, studentAccountBody } from "@/lib/mentor";
-import { studentAccountSchema, type StudentAccountValues } from "@/schema/mentor.schema";
+import { accountUpdateBody, canManageAccount } from "@/lib/admin";
+import { useAppSelector } from "@/redux/hooks";
+import { adminAccountSchema, type AdminAccountValues } from "@/schema/admin.schema";
+import type { Role } from "@/types/common.types";
+import { studentAccountSchema } from "@/schema/mentor.schema";
 import { apiStatus, apiErrorMessage, mapFormError } from "@/utils/api-error";
 import { useRequestCooldown } from "@/hooks/use-request-cooldown";
 import {
@@ -35,44 +38,68 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 
-function AccountEditor({ account, refresh }: { account: UserRecord; refresh: () => void }) {
+function AccountEditor({
+  account,
+  refresh,
+  workspace,
+  backPath,
+}: {
+  account: UserRecord;
+  refresh: () => void;
+  workspace: "mentor" | "admin";
+  backPath: string;
+}) {
+  const actor = useAppSelector((state) => state.auth.user);
+  const admin = workspace === "admin" && actor?.role === "ADMIN";
+  const label = admin ? "User" : "Student";
+  const allowed = canManageAccount(account, actor?.role);
   const router = useRouter();
-  const form = useForm<StudentAccountValues>({
-    resolver: zodResolver(studentAccountSchema),
-    defaultValues: { email: account.email, password: "", confirmPassword: "" },
+  const form = useForm<AdminAccountValues>({
+    resolver: zodResolver(admin ? adminAccountSchema : studentAccountSchema),
+    defaultValues: {
+      email: account.email,
+      password: "",
+      confirmPassword: "",
+      ...(admin ? { role: account.role } : {}),
+    },
   });
   const [update, updateState] = useUpdateUserMutation();
   const [status, statusState] = useUpdateUserStatusMutation();
   const [remove, deleteState] = useDeleteUserMutation();
   const [confirm, setConfirm] = useState<"update" | "status" | "delete" | null>(null);
-  const [values, setValues] = useState<StudentAccountValues | null>(null);
+  const [values, setValues] = useState<AdminAccountValues | null>(null);
   const [error, setError] = useState<unknown>();
   const [blocked, setBlocked] = useState(false);
   const pending = useRef(false);
   const cooldown = useRequestCooldown();
   const busy = updateState.isLoading || statusState.isLoading || deleteState.isLoading;
   async function execute() {
-    if (pending.current || cooldown.seconds || blocked || !canManageStudent(account)) return;
+    if (pending.current || cooldown.seconds || blocked || !allowed) return;
     pending.current = true;
     setError(undefined);
     form.clearErrors();
     try {
       if (confirm === "delete") {
         await remove(account.id).unwrap();
-        toast.success("Student account deleted");
-        router.replace("/mentor/students");
+        toast.success(`${label} account deleted`);
+        router.replace(backPath);
       } else if (confirm === "status") {
         await status({ id: account.id, body: { isActive: !account.isActive } }).unwrap();
         toast.success(
-          account.isActive ? "Student account deactivated" : "Student account activated",
+          account.isActive ? `${label} account deactivated` : `${label} account activated`,
         );
       } else if (confirm === "update" && values) {
         const result = await update({
           id: account.id,
-          body: studentAccountBody(values, account.email),
+          body: accountUpdateBody(values, account, actor?.role),
         }).unwrap();
-        form.reset({ email: result.data.email, password: "", confirmPassword: "" });
-        toast.success("Student account updated");
+        form.reset({
+          email: result.data.email,
+          password: "",
+          confirmPassword: "",
+          ...(admin ? { role: result.data.role } : {}),
+        });
+        toast.success(`${label} account updated`);
       }
       setValues(null);
       setConfirm(null);
@@ -82,8 +109,8 @@ function AccountEditor({ account, refresh }: { account: UserRecord; refresh: () 
       mapFormError(
         failure,
         form.setError,
-        ["email", "password"],
-        "Unable to update this Student account.",
+        ["email", "password", "role"],
+        `Unable to update this ${label} account.`,
       );
       if ([403, 404].includes(apiStatus(failure) ?? 0)) {
         setBlocked(true);
@@ -101,13 +128,13 @@ function AccountEditor({ account, refresh }: { account: UserRecord; refresh: () 
     <div className="grid items-start gap-6 lg:grid-cols-2">
       <Card className="rounded-xl border-slate-200 shadow-sm">
         <CardContent className="p-5 sm:p-6">
-          <h2 className="mb-5 text-lg font-semibold">Edit Student account</h2>
+          <h2 className="mb-5 text-lg font-semibold">Edit {label} account</h2>
           <form
             noValidate
-            aria-label="Edit Student account"
+            aria-label={`Edit ${label} account`}
             onSubmit={form.handleSubmit((next) => {
               if (pending.current || blocked) return;
-              const body = studentAccountBody(next, account.email);
+              const body = accountUpdateBody(next, account, actor?.role);
               if (!Object.keys(body).length) return;
               setValues(next);
               setError(undefined);
@@ -142,6 +169,22 @@ function AccountEditor({ account, refresh }: { account: UserRecord; refresh: () 
               >
                 <PasswordInput {...form.register("confirmPassword")} autoComplete="new-password" />
               </Field>
+              {admin && (
+                <Field
+                  label="Account role"
+                  error={form.formState.errors.role?.message}
+                  description="Changing role does not create or restore a matching profile. The account may lose profile-dependent features and must renew its session. Use staff creation for a complete new account."
+                >
+                  <select
+                    className="h-10 w-full rounded-md border bg-white px-3"
+                    {...form.register("role")}
+                  >
+                    <option value="ADMIN">Admin</option>
+                    <option value="MENTOR">Mentor</option>
+                    <option value="STUDENT">Student</option>
+                  </select>
+                </Field>
+              )}
               {form.formState.errors.root?.message && (
                 <p role="alert" className="mb-4 text-sm text-destructive">
                   {form.formState.errors.root.message}
@@ -162,13 +205,13 @@ function AccountEditor({ account, refresh }: { account: UserRecord; refresh: () 
               {account.isActive ? "Active" : "Inactive"}
             </Badge>
             <p className="mt-3 text-sm text-muted-foreground">
-              Deactivating an account prevents the student from signing in. You can activate it
-              again later.
+              Deactivating an account prevents the user from signing in. You can activate it again
+              later.
             </p>
             <Button
               className="mt-3"
               variant="outline"
-              disabled={busy || blocked || Boolean(cooldown.seconds)}
+              disabled={busy || blocked || Boolean(cooldown.seconds) || actor?.id === account.id}
               onClick={() => {
                 setError(undefined);
                 setConfirm("status");
@@ -178,9 +221,9 @@ function AccountEditor({ account, refresh }: { account: UserRecord; refresh: () 
             </Button>
           </div>
           <div className="border-t pt-5">
-            <h3 className="font-medium text-destructive">Delete Student account</h3>
+            <h3 className="font-medium text-destructive">Delete {label} account</h3>
             <p className="mt-2 text-sm text-muted-foreground">
-              The student loses access, and their projects are removed from visible submission lists
+              The user loses access, and their projects are removed from visible submission lists
               and totals. Account restoration is unavailable.
             </p>
             <Button
@@ -222,10 +265,10 @@ function AccountEditor({ account, refresh }: { account: UserRecord; refresh: () 
           <DialogHeader>
             <DialogTitle>
               {confirm === "delete"
-                ? "Delete Student account?"
+                ? `Delete ${label} account?`
                 : confirm === "status"
-                  ? `${account.isActive ? "Deactivate" : "Activate"} Student account?`
-                  : "Save Student account changes?"}
+                  ? `${account.isActive ? "Deactivate" : "Activate"} ${label} account?`
+                  : `Save ${label} account changes?`}
             </DialogTitle>
             <DialogDescription>
               {account.email}
@@ -240,6 +283,13 @@ function AccountEditor({ account, refresh }: { account: UserRecord; refresh: () 
             <ul className="space-y-2 break-all text-sm">
               {values.email !== account.email && <li>New email: {values.email}</li>}
               {values.password && <li>Replace account password</li>}
+              {admin && values.role !== account.role && (
+                <li>
+                  Change role to {values.role}. No matching profile is created. Existing
+                  profile-dependent features may be unavailable.{" "}
+                  {actor?.id === account.id && "You will be signed out."}
+                </li>
+              )}
             </ul>
           )}
           {error !== undefined && (
@@ -273,16 +323,33 @@ function AccountEditor({ account, refresh }: { account: UserRecord; refresh: () 
   );
 }
 
-export default function StudentAccount({ id }: { id: string }) {
+export default function StudentAccount({
+  id,
+  workspace = "mentor",
+  targetRole,
+}: {
+  id: string;
+  workspace?: "mentor" | "admin";
+  targetRole?: Role;
+}) {
+  const actor = useAppSelector((state) => state.auth.user);
+  const backPath =
+    workspace === "mentor"
+      ? "/mentor/students"
+      : targetRole === "MENTOR"
+        ? "/admin/mentors"
+        : targetRole === "STUDENT"
+          ? "/admin/students"
+          : "/admin/users";
   const validId = z.string().uuid().safeParse(id).success;
   const query = useGetUserByIdQuery(id, { skip: !validId, refetchOnMountOrArgChange: true });
   const account = query.currentData?.data;
   if (!validId || apiStatus(query.error) === 404)
     return (
       <MissingRecord
-        title="Student account not found"
+        title="Account not found"
         description="This account may have been deleted."
-        action={<Link href="/mentor/students">Return to directory</Link>}
+        action={<Link href={backPath}>Return to directory</Link>}
       />
     );
   if (query.isError)
@@ -294,18 +361,24 @@ export default function StudentAccount({ id }: { id: string }) {
       />
     );
   if (!account) return <ContentSkeleton rows={6} />;
-  if (!canManageStudent(account))
+  if (!canManageAccount(account, actor?.role) || (targetRole && account.role !== targetRole))
     return (
-      <ErrorAlert message="You can manage Student accounts only. This account is unavailable." />
+      <ErrorAlert
+        message={
+          workspace === "admin"
+            ? "This account no longer matches this directory. Open User Management to check its latest role."
+            : "You can manage Student accounts only. This account is unavailable."
+        }
+      />
     );
   return (
     <>
       <PageHeading
-        title="Student account"
+        title={workspace === "admin" ? "User account" : "Student account"}
         description={account.email}
         action={
           <Button asChild variant="outline">
-            <Link href="/mentor/students">Back to directory</Link>
+            <Link href={backPath}>Back to directory</Link>
           </Button>
         }
       />
@@ -329,7 +402,13 @@ export default function StudentAccount({ id }: { id: string }) {
           </div>
         </CardContent>
       </Card>
-      <AccountEditor key={account.id} account={account} refresh={() => void query.refetch()} />
+      <AccountEditor
+        key={`${account.id}:${account.updatedAt}`}
+        account={account}
+        workspace={workspace}
+        backPath={backPath}
+        refresh={() => void query.refetch()}
+      />
     </>
   );
 }

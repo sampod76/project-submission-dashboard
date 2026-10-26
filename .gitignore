@@ -11,14 +11,12 @@
 
 
 /.next/
+/.next-dev/
 /out/
-tests/*
-!tests/mentor.test.ts
 
-
+/tests
 /build
 
-/docs/api
 
 .DS_Store
 *.pem

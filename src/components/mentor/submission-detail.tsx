@@ -141,7 +141,13 @@ function ReviewForm({
   );
 }
 
-export default function SubmissionDetail({ id }: { id: string }) {
+export default function SubmissionDetail({
+  id,
+  workspace = "mentor",
+}: {
+  id: string;
+  workspace?: "mentor" | "admin";
+}) {
   const validId = z.string().uuid().safeParse(id).success;
   const query = useGetSubmissionByIdQuery(id, {
     skip: !validId,
@@ -159,7 +165,7 @@ export default function SubmissionDetail({ id }: { id: string }) {
       <MissingRecord
         title="Submission not found"
         description="This project may have been removed or is no longer available."
-        action={<Link href="/mentor/submissions">Back to submissions</Link>}
+        action={<Link href={`/${workspace}/submissions`}>Back to submissions</Link>}
       />
     );
   if (query.isError)
@@ -205,7 +211,7 @@ export default function SubmissionDetail({ id }: { id: string }) {
             <h2 className="text-lg font-semibold">Student</h2>
             <Link
               className="block break-words font-medium text-primary hover:underline"
-              href={`/mentor/students/${submission.student.userId}`}
+              href={`/${workspace}/students/${submission.student.userId}`}
             >
               {submission.student.firstName} {submission.student.lastName}
             </Link>

@@ -1,6 +1,5 @@
 {
   "name": "project-submission-dashboard",
-  "description": "Project submission and management dashboard for administrators, mentors, and students.",
   "version": "0.1.0",
   "private": true,
   "scripts": {

@@ -14,7 +14,8 @@ type RouteStateProps = {
   statusCode?: "403" | "404";
   title: string;
   description: string;
-  homeHref: "/" | "/signin" | "/login" | "/dashboard" | "/student/dashboard" | "/mentor/dashboard";
+  homeHref:
+    "/" | "/signin" | "/login" | "/student/dashboard" | "/mentor/dashboard" | "/admin/dashboard";
   homeLabel: string;
   reset?: () => void;
   children?: ReactNode;
@@ -85,7 +86,7 @@ export default function RouteState({
         <div className="grid w-full max-w-[1500px] items-center lg:grid-cols-[1.1fr_0.9fr] lg:gap-8 xl:gap-12">
           <div className="hidden items-center justify-center lg:flex" aria-hidden="true">
             <Image
-              src="/auth-banner.webp"
+              src="/auth-banner.webp?v=d06e9ce06cf5"
               alt=""
               width={1536}
               height={1024}

@@ -1,0 +1,23 @@
+name: GHCR Cleanup (Delete untagged images)
+
+on:
+    schedule:
+        - cron: "0 3 * * *" # প্রতিদিন রাত ৩টা
+    workflow_dispatch:
+
+permissions:
+    packages: write
+    contents: read
+
+jobs:
+    cleanup:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: 🧹 Delete untagged images (safe mode)
+              uses: actions/delete-package-versions@v5
+              with:
+                  package-name: doctor-tracker-server
+                  package-type: container
+                  delete-only-untagged-versions: true
+                  min-versions-to-keep: 5

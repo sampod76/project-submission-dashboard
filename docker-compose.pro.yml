@@ -1,0 +1,32 @@
+services:
+  app:
+    image: ghcr.io/sampod76/doctor-tracking-dashboard:latest
+    container_name: doctor-tracking-dashboard
+    profiles: ["app"]
+
+    env_file:
+      - /home/sampod/apps/envs/doctor/client/.env
+
+    environment:
+      NODE_ENV: production
+      # NEXT_PUBLIC_BASE_URL is embedded by the GHCR build, not configured at runtime.
+      HOSTNAME: 0.0.0.0
+      PORT: 3000
+
+    ports:
+      - "3052:3000"
+
+    restart: unless-stopped
+
+    networks:
+      - doctor-tracker-network
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  doctor-tracker-network:
+    driver: bridge

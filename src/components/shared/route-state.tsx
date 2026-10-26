@@ -35,7 +35,9 @@ export default function RouteState({
     statusCode === "404" ? FileSearch : statusCode === "403" ? LockKeyhole : TriangleAlert;
   const card = (
     <section className="w-full max-w-[480px] rounded-3xl border border-sky-100 bg-white/95 p-6 text-center shadow-[0_16px_48px_rgba(42,112,170,0.08)] sm:p-10">
-      <p className="mb-6 text-sm font-semibold tracking-wide text-blue-600">Doctor Tracker</p>
+      <p className="mb-6 text-sm font-semibold tracking-wide text-blue-600">
+        Project Submission Dashboard
+      </p>
       <span
         aria-hidden="true"
         className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-50 text-3xl text-blue-600"
@@ -83,7 +85,7 @@ export default function RouteState({
         <div className="grid w-full max-w-[1500px] items-center lg:grid-cols-[1.1fr_0.9fr] lg:gap-8 xl:gap-12">
           <div className="hidden items-center justify-center lg:flex" aria-hidden="true">
             <Image
-              src="/auth-banner.jpg"
+              src="/auth-banner.webp"
               alt=""
               width={1536}
               height={1024}

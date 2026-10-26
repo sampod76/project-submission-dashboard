@@ -1,7 +1,7 @@
 module.exports = {
   apps: [
     {
-      name: "doctor-tracking-dashboard",
+      name: "project-submission-dashboard",
       script: "server.js",
 
       instances: 1,

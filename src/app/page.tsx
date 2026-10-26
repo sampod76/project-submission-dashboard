@@ -1,29 +1,22 @@
-import type { Metadata } from "next";
 import Image from "next/image";
 import { FileText, Users, User } from "lucide-react";
 import LandingActions from "@/components/landing/landing-actions";
 
-export const metadata: Metadata = {
-  title: "Doctor Tracker | Doctor & Patient Management",
-  description:
-    "Keep doctors, patients, treatments and follow-up information organized in one calm, simple place.",
-};
-
 const features = [
   {
-    title: "Manage Doctors",
+    title: "Legacy: Manage Doctors",
     description: "Manage doctor profiles, specialization and hospital information.",
     icon: User,
     color: "bg-sky-100 text-sky-600",
   },
   {
-    title: "Manage Patients",
+    title: "Legacy: Manage Patients",
     description: "Keep patient information, complaints, treatment status and follow-ups.",
     icon: Users,
     color: "bg-emerald-100 text-emerald-500",
   },
   {
-    title: "Track Treatment & Follow-ups",
+    title: "Legacy: Treatment & Follow-ups",
     description: "Stay organized with treatment records and follow-up schedules.",
     icon: FileText,
     color: "bg-violet-100 text-violet-500",
@@ -40,29 +33,29 @@ export default function Page() {
         >
           <div className="min-w-0">
             <Image
-              src="/auth-logo.png"
-              alt="Doctor Tracker"
-              width={912}
-              height={1148}
+              src="/icon.svg"
+              alt="Project Submission Dashboard"
+              width={128}
+              height={128}
               priority
               className="mb-6 h-28 w-auto rounded-xl object-contain"
             />
             <p className="mb-5 inline-flex rounded-full border border-sky-200 bg-sky-100/80 px-5 py-2 text-sm font-medium text-[#0764b5] sm:text-base">
-              Simple &middot; Secure &middot; Organized
+              Phase 1 &middot; Project setup
             </p>
             <h1
               id="landing-heading"
               className="m-0 text-4xl font-bold leading-[1.1] tracking-tight sm:text-5xl xl:text-6xl"
             >
-              <span className="block">Doctor &amp; Patient</span>
-              <span className="block">Management</span>
+              <span className="block">Project Submission</span>
               <span className="block bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
-                Made Simple
+                Dashboard
               </span>
             </h1>
             <p className="mb-0 mt-6 max-w-lg text-base leading-7 text-slate-600 sm:text-lg">
-              Keep doctors, patients, treatments and follow-up information organized in one calm,
-              simple place.
+              Project submission and management dashboard for administrators, mentors, and students.
+              Project and submission features are planned for Phase 2. The existing Doctor/Patient
+              functionality is retained below for migration.
             </p>
             <LandingActions />
           </div>
@@ -76,10 +69,13 @@ export default function Page() {
               priority
               className="h-auto w-full object-contain"
             />
+            <p className="mt-2 text-center text-xs text-slate-500">
+              Legacy medical illustration retained during migration.
+            </p>
           </div>
         </section>
         <section
-          aria-label="Doctor Tracker features"
+          aria-label="Legacy functionality awaiting Phase 2 migration"
           className="mt-10 grid gap-4 md:grid-cols-2 lg:mt-12 lg:grid-cols-3"
         >
           {features.map(({ title, description, icon: Icon, color }) => (

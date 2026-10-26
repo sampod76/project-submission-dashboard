@@ -5,7 +5,7 @@ export default function NotFound() {
       variant="auth"
       statusCode="404"
       title="Page not found"
-      description="This sign-in page doesn't exist. Return to sign in to access Doctor Tracker."
+      description="This sign-in page doesn't exist. Return to sign in to access Project Submission Dashboard."
       homeHref="/signin"
       homeLabel="Go to Sign In"
     />

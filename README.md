@@ -1,149 +1,136 @@
-# Doctor Tracker – Frontend
+# Project Submission Dashboard
 
-## Project Overview
+Project submission and management dashboard for administrators, mentors, and students.
 
-Doctor Tracker is a doctor and patient management application. This frontend gives authenticated admin users a responsive interface to manage doctor profiles, patient records, treatment status, and follow-up dates, with dashboard analytics and visualizations supplied by the backend API.
+Repository: [sampod76/project-submission-dashboard](https://github.com/sampod76/project-submission-dashboard).
 
-## Live Application
+## Current status
 
-- Frontend: [doctor-tracker.iblossomlearn.org](https://doctor-tracker.iblossomlearn.org)
-- Alternate frontend: [doctor-tracker-pro.netlify.app](https://doctor-tracker-pro.netlify.app/)
+Phase 1 migrates project identity and configuration. User, mentor, student, project and submission management, including the planned `ADMIN`, `MENTOR` and `STUDENT` roles, await Phase 2 and the separate Project Submission backend contract. No backend repository or production domain has been confirmed.
 
-The original frontend URL is preserved from the previous README. The sign-in page redirects to the alternate frontend if login fails on the original domain.
+The existing Doctor/Patient pages, charts, forms and authentication code remain available for migration. They still expect the legacy API contract; they are **not** completed Project Submission features. Login needs a compatible explicitly configured backend and its own account. There are no bundled demo credentials or fallback production hosts.
 
-## Demo Credentials
+## Stack and structure
 
-The sign-in page exposes these demo credentials through **Auto Fill Admin Login**:
-
-- Email: `admin@doctortracker.com`
-- Password: `Admin@12345`
-
-Authentication requires the backend to have the corresponding account available.
-
-## Key Features
-
-- Email/password sign-in, persisted sessions, automatic token refresh, and client-side dashboard route protection.
-- Dashboard totals, recent records, and charts for patient trends, patients per doctor, and treatment status.
-- Create, view, edit, and delete doctors; manage specialization, hospital, registration number, and active status.
-- Create, view, edit, and delete patients; assign doctors and record complaints, advice, notes, treatment status, and visit/follow-up dates.
-- Debounced search, API-driven filtering, sorting, and pagination for doctors and patients.
-- Doctor details with a patient list scoped to that doctor, account profile viewing, and password changes.
-- Responsive navigation and mobile filter drawers, loading states, retry actions, error boundaries, and 404 pages.
-
-## Tech Stack
-
-- **Framework:** Next.js 14 App Router, React 18, TypeScript.
-- **State and API:** Redux Toolkit, RTK Query, React Redux, Redux Persist.
-- **UI:** Ant Design, Ant Design Icons, Tailwind CSS.
-- **Charts and validation:** Recharts, Ant Design Forms, Zod, Day.js.
-- **Tooling:** pnpm, ESLint, Prettier.
-
-## Project Structure
+- Next.js 14.2.35 App Router, React 18.3.1 and TypeScript.
+- Redux Toolkit, RTK Query, React Redux and Redux Persist.
+- React Hook Form, Zod, TanStack Table and Recharts.
+- Tailwind CSS, shadcn-style Radix UI components, Lucide icons and Sonner.
+- pnpm, ESLint, Prettier, Docker and GitHub Actions.
 
 ```text
-src/
-├── app/          # Pages, layouts, and route states
-├── components/   # Doctor, patient, dashboard, and shared UI
-├── config/       # API host and image configuration
-├── constants/    # Navigation and hospital options
-├── hooks/        # Authentication, debounce, and mobile helpers
-├── redux/        # Store and feature API modules
-├── schema/       # Password validation
-├── styles/       # Global styles
-├── types/        # Data and API types
-└── utils/        # API error messages
-public/           # Images and fonts
-docs/screenshots/ # Existing desktop screenshots
+src/app/          Pages, layouts, metadata and route states
+src/components/  Legacy doctor/patient/dashboard modules and shared UI
+src/config/      API host and image settings
+src/constants/   Navigation and legacy hospital options
+src/hooks/       Authentication, debounce and mobile helpers
+src/redux/       Store, authentication and RTK Query API modules
+src/schema/      Existing form schemas
+src/types/       Existing API and data contracts
+src/styles/      Global styles
+src/lib/         UI utilities
+src/utils/       API error helpers
+public/          Images and fonts
+.github/workflows/ Validation, image publication and image retention
 ```
 
-## State Management and Data Fetching
+## Installation and local development
 
-Redux Toolkit stores authentication state, persisted to browser local storage with Redux Persist. RTK Query handles API requests, caching, loading/error states, and cache invalidation through separate auth, doctor, patient, and dashboard modules. The shared base query attaches bearer tokens and coordinates refresh attempts after authenticated requests return `401`.
-
-## Setup Guide
-
-Use Node.js and pnpm; the Docker build uses Node.js 22.18.0 and pnpm 10.19.0. A running compatible [backend](https://github.com/sampod76/doctor-tracker-server.git) is required for authentication and application data.
+Docker and CI use Node.js 22.18.0 and pnpm 10.19.0. Use the same versions for reproducible installs.
 
 ```sh
-git clone https://github.com/sampod76/doctor-tracking-dashboard.git
-cd doctor_tracking_dashboard
+git clone https://github.com/sampod76/project-submission-dashboard.git
+cd project-submission-dashboard
 pnpm install
-```
-
-Copy `.env.example` to `.env.local`:
-
-```sh
 cp .env.example .env.local
 ```
 
-On PowerShell, use `Copy-Item .env.example .env.local` instead. Set `NEXT_PUBLIC_BASE_URL` to your backend origin, then start the frontend:
+In PowerShell, use `Copy-Item .env.example .env.local`. Set `NEXT_PUBLIC_BASE_URL` to the **confirmed** backend origin before running:
 
 ```sh
 pnpm dev
 ```
 
-Open [localhost:3000](http://localhost:3000).
+Open [localhost:3000](http://localhost:3000). No local backend port is assumed; obtain the origin from the backend configuration. The repository contains no backend service.
 
-| Command                                | Purpose                                 |
-| -------------------------------------- | --------------------------------------- |
-| `pnpm build`                           | Create the production build             |
-| `pnpm start`                           | Serve the production build on port 3000 |
-| `pnpm lint`                            | Run ESLint                              |
-| `pnpm exec prettier --check README.md` | Check README formatting                 |
+| Command                          | Purpose                                       |
+| -------------------------------- | --------------------------------------------- |
+| `pnpm install --frozen-lockfile` | Install exactly the locked dependencies       |
+| `pnpm exec tsc --noEmit`         | Check TypeScript                              |
+| `pnpm lint`                      | Check ESLint                                  |
+| `pnpm build`                     | Build for production; requires the API origin |
+| `pnpm start`                     | Serve the built app on port 3000              |
+| `pnpm format:check`              | Check formatting                              |
 
-The `dev:secure` script references `server.ts`, which is absent from this repository.
+The unused `dev:secure` command was removed because its `server.ts` entry point does not exist.
 
-## Environment Variables
+## Environment configuration
 
-A safe template is provided in [`.env.example`](./.env.example).
+[.env.example](./.env.example) documents the configurable values. Private `.env*` files are ignored by Git and excluded from Docker builds; only the example is tracked.
 
-```dotenv
-NEXT_PUBLIC_BASE_URL=
-```
+| Variable               | Purpose                                                                                                                        |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `NEXT_PUBLIC_BASE_URL` | Required HTTP(S) backend origin, without credentials, query, fragment or `/api/v1`. No fallback is supplied.                   |
+| `APP_HOST_PORT`        | Required Docker host port mapped to container port `3000`. Choose an available port explicitly.                                |
+| `APP_DIR`              | Absolute path to a dedicated VPS checkout, required only when manually invoking `deploy.sh`. The directory must already exist. |
 
-Set this to the backend origin without `/api/v1`; the API client appends that prefix. Missing configuration raises an error instead of silently choosing another host. Next.js embeds `NEXT_PUBLIC_*` values at build time, so configure the host before building and keep secrets out of these variables. The template also sets `NODE_ENV=development`; the Next.js scripts select the environment for their respective modes.
+The retained RTK Query client appends `/api/v1` and still uses the existing auth, doctor, patient and dashboard endpoints. Their contracts must be reviewed in Phase 2. These are not promises about the new backend API.
 
-For production, set the GitHub Repository Variable `NEXT_PUBLIC_BASE_URL` to `https://api-doctor.iblossomlearn.org`. The deploy workflow validates it and passes it as a Docker build argument; the builder validates it before `pnpm build`. `.dockerignore` excludes `.env*` and `.next`, so environment files and existing local builds are not copied into the image. Changing the build argument invalidates the environment-dependent build layers.
+`NEXT_PUBLIC_BASE_URL` is public and embedded into browser assets **during the build**. Do not put secrets in it. Changing a container's runtime environment cannot change an already built API origin; rebuild the image. Production builds reject missing values and malformed origins. Next.js selects `NODE_ENV` for its commands; the example does not override it.
 
-For a local Docker build, Compose reads `NEXT_PUBLIC_BASE_URL` from the shell or the project `.env` and passes it through `build.args`:
+Authentication persistence uses `project-submission-dashboard:auth` so an old application's stored session is not reused on the same origin. Existing sessions require signing in again.
+
+## Docker
+
+The existing multi-stage build, Linux standalone output, non-root runtime, Sharp verification, PM2 fork process and JSON log rotation are retained. PM2 is redundant with Docker's restart policy for a single process, but remains to preserve the current runtime and signal handling. All internal ports, including PM2 and `EXPOSE`, use `3000`. No health check existed; none has been added.
+
+For a local image build, copy `.env.example` to `.env`, then set the confirmed `NEXT_PUBLIC_BASE_URL` and an available `APP_HOST_PORT`. Compose reads `.env` or shell values for interpolation; it does not load `.env.local` automatically.
 
 ```sh
-docker compose --profile app up -d --build app
+docker compose --profile app config
+docker compose --profile app build app
 ```
 
-On the VPS, `deploy.sh` pulls the GHCR image and starts it with `docker-compose.pro.yml` and `--no-build`. Keep that Compose file and the updated script in `~/apps/doctor-tracking-dashboard`. The VPS runtime `env_file` cannot change the API URL already compiled into browser JavaScript; changing the URL requires rebuilding and deploying the image.
+Alternatively, with `NEXT_PUBLIC_BASE_URL` explicitly set in your shell:
 
-## System Architecture
+```sh
+docker build --build-arg NEXT_PUBLIC_BASE_URL -t project-submission-dashboard:local .
+```
 
-The frontend renders the interface and calls the backend REST API through RTK Query. The architecture image is maintained in the [backend repository](https://github.com/sampod76/doctor-tracker-server.git) under `docs/system-architecture.png`; no duplicate is included here.
+| Setting         | Production                                             | Local Compose                        |
+| --------------- | ------------------------------------------------------ | ------------------------------------ |
+| Image           | `ghcr.io/sampod76/project-submission-dashboard:latest` | Built from this checkout             |
+| Compose project | `project-submission-dashboard`                         | `project-submission-dashboard-local` |
+| Container       | `project-submission-dashboard`                         | `project-submission-dashboard-local` |
+| Network         | `project-submission-network`                           | `project-submission-network-local`   |
+| Ports           | `${APP_HOST_PORT}:3000`                                | `${APP_HOST_PORT}:3000`              |
 
-The previous README's [Excalidraw reference](https://excalidraw.com/#json=kQw0DY0H2CjY4xM57Xtts,iNSMLnyjp1fALzKPJyenlQ) is retained for context.
+The local network has a separate name to avoid ownership conflicts when both Compose projects run on one machine. Select different host ports in that case. Runtime Compose needs no API env file: the API origin is already compiled into the image, and its runtime settings are explicitly declared.
 
-## Technical Decisions
+## CI/CD and production setup
 
-1. **Redux Toolkit + RTK Query for authentication and server data.** A shared API layer keeps bearer-token handling and refresh coordination consistent across features. Cache tags refresh doctor, patient, and dashboard queries after mutations, while generated hooks expose loading and error states directly to the UI.
-2. **API-driven filtering and pagination with reusable patient management.** Doctor and patient lists send search, filter, sort, and pagination parameters to the backend rather than loading every record into the browser. Search is debounced by 350 ms, and the same patient management component serves both the full patient page and doctor details by accepting a doctor ID.
+`.github/workflows/deploy.yml` validates frozen installation, TypeScript and ESLint on pushes and pull requests targeting `main`. After validation, pushes to `main` or manual runs on `main` in the expected repository build and publish the GHCR image. Docker builds run Next.js compilation, lint and type checking. Publication fails with a clear message until the build variable is configured.
 
-## Visual Evidence
+Required GitHub configuration:
 
-### Login · Desktop
+- Repository variable **`NEXT_PUBLIC_BASE_URL`**: confirmed Project Submission backend origin supplied as a Docker build argument.
+- Built-in **`GITHUB_TOKEN`**: GHCR authentication with `packages: write`; no additional image publication secret is introduced.
+- `SSH_HOST`, `SSH_USER`, `SSH_PRIVATE_KEY` and optional `SSH_PORT` are no longer consumed. Existing secrets were not renamed or changed. Verify dedicated destination credentials before any future SSH deployment is introduced.
 
-![Login](./docs/screenshots/2.login.png)
+**Automatic server deployment is disabled.** No SSH step remains. Image publication does not restart a server. The cleanup workflow only targets untagged versions of the new frontend image and retains at least five versions.
 
-### Dashboard · Desktop
+Before a production deployment, confirm the backend origin and repository, frontend domain/reverse proxy, VPS host and credentials, dedicated checkout directory, registry pull access and external host port. Copy the new deployment files to that dedicated checkout. Do not use a directory or containers belonging to another application.
 
-![Dashboard](./docs/screenshots/3.dashboard.png)
+Validate production interpolation after setting `APP_HOST_PORT` in `.env` or the shell:
 
-### Doctors · Desktop
+```sh
+docker compose -f docker-compose.pro.yml --profile app config
+```
 
-![Doctors](./docs/screenshots/4.doctors.png)
+`deploy.sh` is a manual production operation for an operator after these values are confirmed. It requires an absolute `APP_DIR`, verifies package identity and the configured image, validates Compose before pulling, and uses the explicit new Compose project to recreate only its `app` service with `--no-build --no-deps`. It performs no image, cache or container pruning. It is not invoked by CI.
 
-### Patients · Desktop
+## Phase 2 and historical material
 
-![Patients](./docs/screenshots/6.patients.png)
+Doctor/Patient CRUD, dashboard analytics, auth/profile/password contracts, API cache tags, schemas, types and navigation remain unchanged except for branding, session isolation and removal of the old login redirect/demo fill. Migrate these to API-driven users, mentors, students, projects and submissions only after the new backend contracts are supplied.
 
-Additional screenshots: [Home](./docs/screenshots/1.home.png), [Doctor Details](./docs/screenshots/5.doctors-view.png), and [Patient Details](./docs/screenshots/7.patients-view.png).
-
-### Mobile
-
-TODO: Mobile screenshot needs to be added. The screenshots currently included in this repository are desktop captures.
+`docs/screenshots/` contains historical **Doctor Tracker** desktop captures, not screenshots of the new application. `docs/ui-migration-report.json` records an earlier UI-library migration; its validation claims describe that earlier work. The medical illustrations and unused old logo assets in `public/` are retained as legacy material; active branding uses `src/app/icon.svg`. The medical artwork still visible on landing/sign-in pages is temporary legacy artwork.

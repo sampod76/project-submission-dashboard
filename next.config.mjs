@@ -1,3 +1,5 @@
+import { PHASE_PRODUCTION_BUILD } from "next/constants.js";
+
 const nextConfig = {
   eslint: { ignoreDuringBuilds: false },
   typescript: { ignoreBuildErrors: false },
@@ -15,10 +17,6 @@ const nextConfig = {
     dangerouslyAllowSVG: true,
   },
 
-  env: {
-    BASE_URL: process.env.NEXT_PUBLIC_BASE_URL,
-  },
-
   trailingSlash: false,
 
   async headers() {
@@ -32,4 +30,27 @@ const nextConfig = {
   },
 };
 
-export default nextConfig;
+export default (phase) => {
+  // Next.js 14 also loads the production-build phase for `next lint`.
+  // Linting must remain usable before a backend origin is confirmed.
+  if (phase === PHASE_PRODUCTION_BUILD && process.argv[2] !== "lint") {
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL?.trim();
+    if (!baseUrl) {
+      throw new Error("NEXT_PUBLIC_BASE_URL must be configured before building");
+    }
+    const url = new URL(baseUrl);
+    if (
+      !["http:", "https:"].includes(url.protocol) ||
+      url.username ||
+      url.password ||
+      url.search ||
+      url.hash ||
+      url.pathname !== "/"
+    ) {
+      throw new Error(
+        "NEXT_PUBLIC_BASE_URL must be an HTTP(S) backend origin without credentials, a path, query or fragment",
+      );
+    }
+  }
+  return nextConfig;
+};

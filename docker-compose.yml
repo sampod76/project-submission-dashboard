@@ -1,3 +1,5 @@
+name: project-submission-dashboard-local
+
 services:
   app:
     build:
@@ -6,11 +8,7 @@ services:
       args:
         NEXT_PUBLIC_BASE_URL: ${NEXT_PUBLIC_BASE_URL:?NEXT_PUBLIC_BASE_URL must be configured before building}
 
-    container_name: doctor-tracking-dashboard-local
-    profiles: ["app"]
-
-    env_file:
-      - .env
+    container_name: project-submission-dashboard-local
 
     environment:
       NODE_ENV: production
@@ -18,12 +16,12 @@ services:
       PORT: 3000
 
     ports:
-      - "3052:3000"
+      - "3015:3000"
 
     restart: unless-stopped
 
     networks:
-      - doctor-tracker-network
+      - project-submission-network
 
     logging:
       driver: json-file
@@ -32,5 +30,6 @@ services:
         max-file: "3"
 
 networks:
-  doctor-tracker-network:
+  project-submission-network:
+    name: project-submission-network-local
     driver: bridge

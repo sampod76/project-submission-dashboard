@@ -56,7 +56,7 @@ export default function DashLayout({ children }: { children: React.ReactNode }) 
           setCollapsed={setCollapsed}
           mobileOpen={mobileOpen}
           setMobileOpen={setMobileOpen}
-          pageTitle={"Doctor Tracker"}
+          pageTitle={"Project Submission Dashboard"}
         />
         <main
           className="dashboard-content"
@@ -66,6 +66,10 @@ export default function DashLayout({ children }: { children: React.ReactNode }) 
             overflow: "hidden",
           }}
         >
+          <p className="border-b border-sky-100 bg-sky-50 px-4 py-2 text-sm text-slate-600">
+            Legacy Doctor/Patient functionality. Project Submission features and backend integration
+            are planned for Phase 2.
+          </p>
           {children}
         </main>
       </div>

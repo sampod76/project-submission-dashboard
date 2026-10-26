@@ -8,8 +8,9 @@ import dynamic from "next/dynamic";
 import "../styles/globals.css";
 
 export const metadata: Metadata = {
-  title: "Doctor Tracker",
-  description: "A reusable Doctor Tracker boilerplate.",
+  title: "Project Submission Dashboard",
+  description:
+    "Project submission and management dashboard for administrators, mentors, and students.",
 };
 
 const ReduxProvider = dynamic(() => import("@/provider/redux-provider"), {

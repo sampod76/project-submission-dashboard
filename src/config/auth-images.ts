@@ -9,10 +9,10 @@ export const authHeroImage = {
 };
 
 export const authLogoImage = {
-  src: "/auth-logo.webp",
-  alt: "Doctor Tracker",
-  width: 912,
-  height: 1148,
+  src: "/icon.svg",
+  alt: "Project Submission Dashboard",
+  width: 128,
+  height: 128,
   sizes: "(min-width: 1280px) 152px, 128px",
 };
 

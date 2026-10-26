@@ -15,7 +15,7 @@ RUN corepack enable && corepack prepare pnpm@10.19.0 --activate \
 COPY package.json pnpm-lock.yaml* pnpm-workspace.yaml* .npmrc* ./
 
 
-RUN pnpm fetch
+RUN pnpm fetch --store-dir="$PNPM_STORE_DIR"
 
 
 
@@ -34,7 +34,7 @@ COPY --from=deps /pnpm-store /pnpm-store
 COPY package.json pnpm-lock.yaml* pnpm-workspace.yaml* .npmrc* ./
 
 
-RUN pnpm install --frozen-lockfile --prefer-offline
+RUN pnpm install --frozen-lockfile --prefer-offline --prod=false --store-dir="$PNPM_STORE_DIR"
 
 COPY . .
 
@@ -48,7 +48,7 @@ RUN pnpm build
 FROM node:22.18.0-slim AS runner
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
-    PORT=3005 \
+    PORT=3000 \
     HOSTNAME=0.0.0.0
 
 RUN apt-get update && apt-get install -y --no-install-recommends curl \
@@ -72,5 +72,5 @@ RUN chmod +x ./docker-entry.sh
 
 USER node
 
-EXPOSE 3005
+EXPOSE 3000
 ENTRYPOINT ["/app/docker-entry.sh"]

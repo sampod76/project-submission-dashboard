@@ -15,7 +15,6 @@ import {
 
 import createWebStorage from "redux-persist/lib/storage/createWebStorage";
 
-
 const createNoopStorage = () => {
   return {
     getItem(_key: string) {
@@ -32,11 +31,10 @@ const createNoopStorage = () => {
   };
 };
 
-
 const storage = typeof window !== "undefined" ? createWebStorage("local") : createNoopStorage();
 
 const authPersistConfig = {
-  key: "auth",
+  key: "project-submission-dashboard:auth",
   storage,
   whitelist: ["user", "accessToken", "refreshToken", "expiresIn"],
 };
@@ -55,7 +53,6 @@ export const store = configureStore({
       },
     }).concat(baseApi.middleware),
 });
-
 
 export const persistor = typeof window !== "undefined" ? persistStore(store) : null;
 

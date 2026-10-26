@@ -37,7 +37,7 @@ type ModalComponentProps = {
 };
 export default function ModalComponent({
   children,
-  title = "Doctor Tracker",
+  title = "Project Submission Dashboard",
   buttonText,
   button,
   loading = false,

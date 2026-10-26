@@ -1,11 +1,9 @@
+name: project-submission-dashboard
+
 services:
   app:
-    image: ghcr.io/sampod76/doctor-tracking-dashboard:latest
-    container_name: doctor-tracking-dashboard
-    profiles: ["app"]
-
-    env_file:
-      - /home/sampod/apps/envs/doctor/client/.env
+    image: ghcr.io/sampod76/project-submission-dashboard:latest
+    container_name: project-submission-dashboard
 
     environment:
       NODE_ENV: production
@@ -14,12 +12,12 @@ services:
       PORT: 3000
 
     ports:
-      - "3052:3000"
+      - "${APP_HOST_PORT:?APP_HOST_PORT must be configured}:3000"
 
     restart: unless-stopped
 
     networks:
-      - doctor-tracker-network
+      - project-submission-network
 
     logging:
       driver: json-file
@@ -28,5 +26,6 @@ services:
         max-file: "3"
 
 networks:
-  doctor-tracker-network:
+  project-submission-network:
+    name: project-submission-network
     driver: bridge

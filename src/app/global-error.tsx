@@ -44,7 +44,7 @@ export default function GlobalError({ reset }: RouteErrorProps) {
               boxShadow: "0 16px 48px rgba(42,112,170,0.08)",
             }}
           >
-            <p style={{ color: "#007bff", fontWeight: 600 }}>Doctor Tracker</p>
+            <p style={{ color: "#007bff", fontWeight: 600 }}>Project Submission Dashboard</p>
             <h1 style={{ fontSize: 28 }}>Something went wrong</h1>
             <p style={{ color: "#64748b", lineHeight: 1.6 }}>
               We couldn&apos;t load the application. Please try again or return home.

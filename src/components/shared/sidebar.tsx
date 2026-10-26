@@ -175,8 +175,8 @@ export default function Sidebar({ collapsed, isMobile = false, onMenuSelect }: S
       >
         <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-black/5 bg-white shadow-sm">
           <Image
-            src="/auth-logo.png"
-            alt="Logo"
+            src="/icon.svg"
+            alt="Project Submission Dashboard"
             width={34}
             height={34}
             priority

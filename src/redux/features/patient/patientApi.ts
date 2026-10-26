@@ -1,5 +1,5 @@
-import { baseApi } from "@/redux/api/baseApi";
-import { tagTypes } from "@/redux/tag-types";
+import { baseApi } from "../../api/baseApi";
+import { legacyUnavailable } from "../../api/legacy-unavailable";
 import type {
   CreatePatientPayload,
   PatientDetails,
@@ -10,32 +10,25 @@ import type {
 } from "@/types/patient";
 import type { TResponse } from "@/types/global";
 
-const URL = "/patients";
-
 export const patientApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     createPatient: builder.mutation<TResponse<Omit<TPatient, "doctor">>, CreatePatientPayload>({
-      query: (body) => ({ url: URL, method: "POST", body }),
-      invalidatesTags: [tagTypes.patient, tagTypes.doctor],
+      queryFn: legacyUnavailable,
     }),
     getPatientById: builder.query<TResponse<PatientDetails>, string>({
-      query: (id) => ({ url: `${URL}/${id}`, method: "GET" }),
-      providesTags: [tagTypes.patient],
+      queryFn: legacyUnavailable,
     }),
     updatePatient: builder.mutation<
       TResponse<PatientDetails>,
       { id: string; body: UpdatePatientPayload }
     >({
-      query: ({ id, body }) => ({ url: `${URL}/${id}`, method: "PATCH", body }),
-      invalidatesTags: [tagTypes.patient, tagTypes.doctor],
+      queryFn: legacyUnavailable,
     }),
     deletePatient: builder.mutation<TResponse<PatientDetails>, string>({
-      query: (id) => ({ url: `${URL}/${id}`, method: "DELETE" }),
-      invalidatesTags: [tagTypes.patient, tagTypes.doctor],
+      queryFn: legacyUnavailable,
     }),
     getPatients: builder.query<PatientsResponse, PatientsQueryParams>({
-      query: (params) => ({ url: URL, method: "GET", params }),
-      providesTags: [tagTypes.patient],
+      queryFn: legacyUnavailable,
     }),
   }),
 });

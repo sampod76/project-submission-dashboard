@@ -16,6 +16,7 @@ tests/*
 
 /build
 
+/docs/api
 
 .DS_Store
 *.pem

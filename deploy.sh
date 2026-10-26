@@ -16,7 +16,7 @@ log "Pulling latest frontend image"
 docker pull "$IMAGE"
 
 log "Restarting frontend container"
-docker compose -f "$COMPOSE_FILE" up -d --force-recreate app
+docker compose -f "$COMPOSE_FILE" up -d --force-recreate
 
 log "Cleaning unused Docker images"
 docker image prune -f

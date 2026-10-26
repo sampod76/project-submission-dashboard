@@ -4,20 +4,20 @@ import LandingActions from "@/components/landing/landing-actions";
 
 const features = [
   {
-    title: "Legacy: Manage Doctors",
-    description: "Manage doctor profiles, specialization and hospital information.",
+    title: "Submit Projects",
+    description: "Students can submit project repositories and track their submission status.",
     icon: User,
     color: "bg-sky-100 text-sky-600",
   },
   {
-    title: "Legacy: Manage Patients",
-    description: "Keep patient information, complaints, treatment status and follow-ups.",
+    title: "Review Submissions",
+    description: "Mentors can review student submissions and provide feedback.",
     icon: Users,
     color: "bg-emerald-100 text-emerald-500",
   },
   {
-    title: "Legacy: Treatment & Follow-ups",
-    description: "Stay organized with treatment records and follow-up schedules.",
+    title: "Track Progress",
+    description: "Stay organized with submission statuses, review results, and project progress.",
     icon: FileText,
     color: "bg-violet-100 text-violet-500",
   },
@@ -38,24 +38,24 @@ export default function Page() {
               width={128}
               height={128}
               priority
-              className="mb-6 h-28 w-auto rounded-xl object-contain"
+              className="mb-3 h-28 w-auto rounded-xl object-contain"
             />
+            <p className="mb-6 text-sm font-bold uppercase tracking-widest">Project Submission</p>
             <p className="mb-5 inline-flex rounded-full border border-sky-200 bg-sky-100/80 px-5 py-2 text-sm font-medium text-[#0764b5] sm:text-base">
-              Phase 1 &middot; Project setup
+              Submit &middot; Review &middot; Track
             </p>
             <h1
               id="landing-heading"
               className="m-0 text-4xl font-bold leading-[1.1] tracking-tight sm:text-5xl xl:text-6xl"
             >
-              <span className="block">Project Submission</span>
+              <span className="block">Project Submission &amp; Management</span>
               <span className="block bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
-                Dashboard
+                Made Simple
               </span>
             </h1>
             <p className="mb-0 mt-6 max-w-lg text-base leading-7 text-slate-600 sm:text-lg">
-              Project submission and management dashboard for administrators, mentors, and students.
-              Project and submission features are planned for Phase 2. The existing Doctor/Patient
-              functionality is retained below for migration.
+              Submit projects, track progress, review submissions, and manage feedback — all in one
+              simple platform.
             </p>
             <LandingActions />
           </div>
@@ -69,13 +69,10 @@ export default function Page() {
               priority
               className="h-auto w-full object-contain"
             />
-            <p className="mt-2 text-center text-xs text-slate-500">
-              Legacy medical illustration retained during migration.
-            </p>
           </div>
         </section>
         <section
-          aria-label="Legacy functionality awaiting Phase 2 migration"
+          aria-label="Project submission features"
           className="mt-10 grid gap-4 md:grid-cols-2 lg:mt-12 lg:grid-cols-3"
         >
           {features.map(({ title, description, icon: Icon, color }) => (

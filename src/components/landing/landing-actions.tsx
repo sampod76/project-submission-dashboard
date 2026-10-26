@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { ArrowRight, UserPlus } from "lucide-react";
-import { Hint } from "@/components/ui/tooltip";
 import { useAppSelector } from "@/redux/hooks";
 
 export default function LandingActions() {
@@ -21,18 +20,16 @@ export default function LandingActions() {
         </span>
         {isLoggedIn ? "Go to Panel" : "Login"}
       </Link>
-      <Hint content="Registration is available by invitation only." toggleOnClick>
-        <button
-          type="button"
-          className="inline-flex items-center justify-center gap-3 rounded-full border border-slate-200 bg-white/80 px-6 py-3 text-[#182747] shadow-sm transition-colors hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-600"
-        >
-          <UserPlus aria-hidden="true" className="text-2xl" />
-          <span className="text-left">
-            <span className="block text-base font-semibold">Registration</span>
-            <span className="block text-sm text-slate-500">Invitation only</span>
-          </span>
-        </button>
-      </Hint>
+      <Link
+        href="/register"
+        className="inline-flex items-center justify-center gap-3 rounded-full border border-slate-200 bg-white/80 px-6 py-3 text-[#182747] shadow-sm transition-colors hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-600"
+      >
+        <UserPlus aria-hidden="true" className="text-2xl" />
+        <span className="text-left">
+          <span className="block text-base font-semibold">Registration</span>
+          <span className="block text-sm text-slate-500">Invitation Only</span>
+        </span>
+      </Link>
     </div>
   );
 }

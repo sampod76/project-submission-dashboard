@@ -12,7 +12,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "check": "pnpm lint:fix && pnpm format",
-    "test": "tsx --test tests/*.test.ts"
+    "test": "tsx --test tests/*.test.ts",
+    "test:api": "tsx --test src/redux/api/__tests__/*.test.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "3.10.0",

@@ -1,64 +1,104 @@
 import { baseApi } from "../../api/baseApi";
-import { login, setUser } from "./authSlice";
+import { legacyUnavailable } from "../../api/legacy-unavailable";
+import { tagTypes } from "@/redux/tag-types";
+import { getAuthState, isTokenResponse } from "../../api/auth-session";
+import { login } from "./authSlice";
+import type { Role } from "@/types/common.types";
 import type {
-  AuthState,
-  LoginPayload,
+  ChangePasswordLegacyBody,
+  ChangePasswordLegacyResponse,
+  GetAuthProfileResponse,
+  LoginBody,
   LoginResponse,
-  RefreshTokenResponse,
+  LogoutResponse,
   ProfileResponse,
-  ChangePasswordPayload,
-  ChangePasswordResponse,
-} from "@/types/auth";
+  RefreshTokenBody,
+  RefreshTokenResponse,
+  RegisterBody,
+  RegisterResponse,
+  SessionResponse,
+} from "@/types/auth.types";
+
 export const authApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    login: builder.mutation<LoginResponse, LoginPayload>({
-      query: (body) => ({ url: "/auth/login", method: "POST", body }),
+    register: builder.mutation<RegisterResponse, RegisterBody>({
+      query: (body) => ({ url: "/auth/register", method: "POST", body }),
+      invalidatesTags: [tagTypes.user, tagTypes.student],
     }),
-    refreshToken: builder.mutation<RefreshTokenResponse, { refreshToken: string }>({
-      query: (body) => ({ url: "/auth/refresh-token", method: "POST", body }),
-      async onQueryStarted({ refreshToken }, { dispatch, getState, queryFulfilled }) {
+    login: builder.mutation<LoginResponse, LoginBody & { expectedRole: Role }>({
+      async queryFn({ expectedRole, email, password }, _api, _extraOptions, baseQuery) {
+        const result = await baseQuery({
+          url: "/auth/login",
+          method: "POST",
+          body: { email, password },
+        });
+        if (result.error) return { error: result.error };
+        if (!isTokenResponse(result.data) || result.data.message !== "Login successful") {
+          return { error: { status: "CUSTOM_ERROR", error: "Invalid token response." } };
+        }
+        if (result.data.data.user.role !== expectedRole) {
+          const cleanup = await baseQuery({
+            url: "/auth/logout",
+            method: "POST",
+            headers: { authorization: `Bearer ${result.data.data.accessToken}` },
+          });
+          const message = cleanup.error
+            ? "This account does not match the selected role. Sign out could not be confirmed; please try again."
+            : "This account does not match the selected role. Select the correct role and sign in again.";
+          return { error: { status: "CUSTOM_ERROR", error: message, data: { message } } };
+        }
+        return { data: result.data };
+      },
+      async onQueryStarted(_body, { dispatch, getState, queryFulfilled }) {
+        const started = getAuthState({ getState }).sessionVersion;
         try {
           const { data } = await queryFulfilled;
-          if (
-            (getState() as unknown as { auth: AuthState }).auth.refreshToken === refreshToken &&
-            data.success
-          )
-            dispatch(login(data.data));
+          if (getAuthState({ getState }).sessionVersion === started) dispatch(login(data.data));
         } catch {
-
+          return;
         }
       },
     }),
-    getProfile: builder.query<ProfileResponse, void>({
+    refreshToken: builder.mutation<RefreshTokenResponse, RefreshTokenBody | void>({
+      query: (body) => ({ url: "/auth/refresh-token", method: "POST", body: body ?? {} }),
+      async onQueryStarted(_body, { dispatch, getState, queryFulfilled }) {
+        const started = getAuthState({ getState }).sessionVersion;
+        try {
+          const { data } = await queryFulfilled;
+          if (getAuthState({ getState }).sessionVersion === started) dispatch(login(data.data));
+        } catch {
+          return;
+        }
+      },
+    }),
+    logout: builder.mutation<LogoutResponse, void>({
+      query: () => ({ url: "/auth/logout", method: "POST" }),
+    }),
+    getSession: builder.query<SessionResponse, void>({
+      query: () => ({ url: "/auth/session", method: "GET" }),
+      providesTags: [tagTypes.session],
+    }),
+    getAuthProfile: builder.query<GetAuthProfileResponse, void>({
       query: () => ({ url: "/auth/profile", method: "GET" }),
-      async onQueryStarted(_, { dispatch, getState, queryFulfilled }) {
-        try {
-          const { data } = await queryFulfilled;
-          const current = (getState() as unknown as { auth: AuthState }).auth;
-          const user = data.data.user;
-          if (data.success && current.accessToken && current.user?.userId === user.userId) {
-            dispatch(
-              setUser({
-                userId: user.userId,
-                email: user.email,
-                role: user.role,
-                name: user.profile?.name ?? current.user.name,
-              }),
-            );
-          }
-        } catch {
-
-        }
-      },
+      providesTags: [tagTypes.profile],
     }),
-    changePassword: builder.mutation<ChangePasswordResponse, ChangePasswordPayload>({
+    changePasswordLegacy: builder.mutation<ChangePasswordLegacyResponse, ChangePasswordLegacyBody>({
       query: (body) => ({ url: "/auth/change-password", method: "POST", body }),
     }),
+
+    getProfile: builder.query<ProfileResponse, void>({ queryFn: legacyUnavailable }),
   }),
 });
+
 export const {
+  useRegisterMutation,
   useLoginMutation,
   useRefreshTokenMutation,
+  useLogoutMutation,
+  useGetSessionQuery,
+  useGetAuthProfileQuery,
+  useChangePasswordLegacyMutation,
   useGetProfileQuery,
-  useChangePasswordMutation,
 } = authApi;
+
+export { useChangePasswordMutation } from "../user/userApi";

@@ -1,132 +1,161 @@
 import config from "@/config";
 import { login, logout } from "@/redux/features/auth/authSlice";
-import type { AuthState, RefreshTokenResponse } from "@/types/auth";
+import type { RefreshTokenBody } from "@/types/auth.types";
 import {
   createApi,
   fetchBaseQuery,
+  type BaseQueryApi,
   type BaseQueryFn,
   type FetchArgs,
   type FetchBaseQueryError,
 } from "@reduxjs/toolkit/query/react";
-import { Mutex } from "async-mutex";
-
 import { tagTypesList } from "../tag-types";
+import { getAuthState, isTokenResponse } from "./auth-session";
 
-const mutex = new Mutex();
-
+const publicUrls = new Set([
+  "/auth/login",
+  "/auth/register",
+  "/auth/refresh-token",
+  `${config.host}/health`,
+]);
 const rawBaseQuery = fetchBaseQuery({
   baseUrl: `${config.host}/api/v1`,
-
-  prepareHeaders: (headers, { getState }) => {
-    const { accessToken } = (getState() as { auth: AuthState }).auth;
-
-    if (accessToken) {
+  credentials: "include",
+  prepareHeaders: (headers, api) => {
+    const { accessToken } = getAuthState(api);
+    const url = typeof api.arg === "string" ? api.arg : api.arg.url;
+    if (accessToken && !publicUrls.has(url)) {
       headers.set("authorization", `Bearer ${accessToken}`);
     }
-
     return headers;
   },
 });
 
-const getAuthState = (api: Parameters<BaseQueryFn>[1]) =>
-  (api.getState() as { auth: AuthState }).auth;
+type RawResult = Awaited<ReturnType<typeof rawBaseQuery>>;
+type ExtraOptions = Parameters<typeof rawBaseQuery>[2];
 
-const baseQueryWithReAuth: BaseQueryFn<
-  string | FetchArgs,
-  unknown,
-  FetchBaseQueryError
-> = async (args, api, extraOptions) => {
+const pendingRefresh = new WeakMap<BaseQueryApi["dispatch"], Promise<RawResult>>();
+const staleSession = (): RawResult => ({
+  error: { status: "CUSTOM_ERROR", error: "Session changed while the request was in flight." },
+});
+
+async function refreshSession(
+  api: BaseQueryApi,
+  extraOptions: ExtraOptions,
+  body: RefreshTokenBody,
+): Promise<RawResult> {
+  const pending = pendingRefresh.get(api.dispatch);
+  if (pending) return pending;
+
+  const started = getAuthState(api).sessionVersion;
+  const request = (async (): Promise<RawResult> => {
+    const result = await rawBaseQuery(
+      { url: "/auth/refresh-token", method: "POST", body },
+      api,
+      extraOptions,
+    );
+    if (getAuthState(api).sessionVersion !== started) return staleSession();
+    if (!isTokenResponse(result.data)) {
+      api.dispatch(logout());
+      if (!result.error) {
+        return { error: { status: "CUSTOM_ERROR", error: "Invalid token response." } };
+      }
+    }
+    return result;
+  })();
+
+  pendingRefresh.set(api.dispatch, request);
+  try {
+    return await request;
+  } finally {
+    pendingRefresh.delete(api.dispatch);
+  }
+}
+
+const baseQueryWithReAuth: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError> = async (
+  args,
+  api,
+  extraOptions,
+) => {
   const url = typeof args === "string" ? args : args.url;
 
-  const isAuthRoute =
-    url === "/auth/login" || url === "/auth/refresh-token";
-
-
-  if (!isAuthRoute) {
-    await mutex.waitForUnlock();
+  if (url === "/auth/refresh-token") {
+    const body: RefreshTokenBody = typeof args !== "string" ? (args.body ?? {}) : {};
+    return refreshSession(api, extraOptions, body);
   }
 
-  const originalAccessToken = getAuthState(api).accessToken;
+  if (url === "/auth/logout") {
+    const { accessToken } = getAuthState(api);
+    const headers =
+      typeof args !== "string" && args.headers
+        ? args.headers
+        : accessToken
+          ? { authorization: `Bearer ${accessToken}` }
+          : undefined;
 
-  let result = await rawBaseQuery(args, api, extraOptions);
-
-
-  if (
-    isAuthRoute ||
-    result.error?.status !== 401 ||
-    !originalAccessToken
-  ) {
-    return result;
-  }
-
-  const release = await mutex.acquire();
-
-  try {
-    const currentAuth = getAuthState(api);
-
-
-    if (currentAuth.accessToken !== originalAccessToken) {
-      return rawBaseQuery(args, api, extraOptions);
-    }
-
-    const refreshToken = currentAuth.refreshToken;
-
-    if (!refreshToken) {
-      api.dispatch(logout());
-      api.dispatch(baseApi.util.resetApiState());
-
-      return result;
-    }
-
-    const refreshResult = await rawBaseQuery(
+    api.dispatch(logout());
+    return rawBaseQuery(
       {
-        url: "/auth/refresh-token",
+        url,
         method: "POST",
-        body: { refreshToken },
+        headers,
       },
       api,
       extraOptions,
     );
-
-
-    const latestAuth = getAuthState(api);
-
-    if (
-      latestAuth.accessToken !== originalAccessToken ||
-      latestAuth.refreshToken !== refreshToken
-    ) {
-      return result;
-    }
-
-    const response = refreshResult.data as RefreshTokenResponse | undefined;
-
-    if (
-      !response?.success ||
-      !response.data?.accessToken ||
-      !response.data.refreshToken ||
-      !response.data.user ||
-      typeof response.data.expiresIn !== "number"
-    ) {
-      api.dispatch(logout());
-      api.dispatch(baseApi.util.resetApiState());
-
-      return result;
-    }
-
-    api.dispatch(login(response.data));
-
-
-    result = await rawBaseQuery(args, api, extraOptions);
-
-    if (result.error?.status === 401) {
-      api.dispatch(logout());
-      api.dispatch(baseApi.util.resetApiState());
-    }
-
-    return result;
-  } finally {
-    release();
   }
+
+  const isPublic = publicUrls.has(url);
+  if (!isPublic) await pendingRefresh.get(api.dispatch);
+  const started = getAuthState(api);
+  let result = await rawBaseQuery(args, api, extraOptions);
+  const current = getAuthState(api);
+
+  if (url === "/auth/login") {
+    if (current.sessionVersion !== started.sessionVersion) return staleSession();
+    if (!result.error && !isTokenResponse(result.data)) {
+      return { error: { status: "CUSTOM_ERROR", error: "Invalid token response." } };
+    }
+    return result;
+  }
+
+  if (isPublic) return result;
+  if (
+    current.user?.id !== started.user?.id ||
+    current.user?.role !== started.user?.role ||
+    (current.sessionVersion !== started.sessionVersion && !current.accessToken)
+  ) {
+    return staleSession();
+  }
+  if (result.error?.status !== 401 || !started.accessToken) return result;
+
+  if (current.sessionVersion === started.sessionVersion) {
+    const renewed = await refreshSession(
+      api,
+      extraOptions,
+      current.refreshToken ? { refreshToken: current.refreshToken } : {},
+    );
+    if (renewed.error) return result;
+    if (
+      getAuthState(api).sessionVersion === current.sessionVersion &&
+      isTokenResponse(renewed.data)
+    ) {
+      api.dispatch(login(renewed.data.data));
+    }
+  }
+
+  const retrySession = getAuthState(api);
+  if (!retrySession.accessToken) return result;
+  if (
+    retrySession.user?.id !== started.user?.id ||
+    retrySession.user?.role !== started.user?.role
+  ) {
+    return staleSession();
+  }
+  result = await rawBaseQuery(args, api, extraOptions);
+  if (getAuthState(api).sessionVersion !== retrySession.sessionVersion) return staleSession();
+  if (result.error?.status === 401) api.dispatch(logout());
+  return result;
 };
 
 export const baseApi = createApi({

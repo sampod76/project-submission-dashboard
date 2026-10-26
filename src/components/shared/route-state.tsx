@@ -14,7 +14,7 @@ type RouteStateProps = {
   statusCode?: "403" | "404";
   title: string;
   description: string;
-  homeHref: "/" | "/signin" | "/dashboard";
+  homeHref: "/" | "/signin" | "/login" | "/dashboard" | "/student/dashboard" | "/mentor/dashboard";
   homeLabel: string;
   reset?: () => void;
   children?: ReactNode;

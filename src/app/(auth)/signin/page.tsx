@@ -18,6 +18,10 @@ import { Input, PasswordInput } from "@/components/ui/input";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
+import { dashboardForRole } from "@/lib/auth-routing";
+import Loader from "@/components/shared/loader";
+import { mapFormError } from "@/utils/api-error";
+import { useRequestCooldown } from "@/hooks/use-request-cooldown";
 
 const roles: { value: Role; label: string }[] = [
   { value: "STUDENT", label: "Student" },
@@ -47,10 +51,10 @@ export default function LoginPage() {
   const roleLabel = roles.find((role) => role.value === selectedRole)!.label;
   const demoCredentials = demoLoginCredentials[selectedRole];
   const busy = isLoading || isSubmitting;
+  const cooldown = useRequestCooldown();
 
   useEffect(() => {
-    // All roles currently share this route; separate dashboards do not exist yet.
-    if (accessToken && user) router.replace("/dashboard");
+    if (accessToken && user) router.replace(dashboardForRole(user.role));
   }, [accessToken, user, router]);
 
   function selectRole(role: Role) {
@@ -73,7 +77,7 @@ export default function LoginPage() {
   }
 
   async function handleLogin(values: LoginBody) {
-    if (submitting.current) return;
+    if (submitting.current || cooldown.seconds) return;
     submitting.current = true;
     form.clearErrors("root");
     try {
@@ -83,11 +87,15 @@ export default function LoginPage() {
         expectedRole: selectedRole,
       }).unwrap();
       toast.success(response.message || "Login successful");
-      router.replace("/dashboard");
+      router.replace(dashboardForRole(response.data.user.role));
     } catch (error) {
-      form.setError("root", {
-        message: apiErrorMessage(error, "Unable to sign in. Check your connection and try again."),
-      });
+      mapFormError(
+        error,
+        form.setError,
+        ["email", "password"],
+        apiErrorMessage(error, "Unable to sign in. Check your connection and try again."),
+      );
+      cooldown.block(error);
     } finally {
       // Do not retain the credential/token response in the RTK mutation cache.
       resetLogin();
@@ -95,6 +103,7 @@ export default function LoginPage() {
     }
   }
 
+  if (accessToken && user) return <Loader />;
   return (
     <AuthLayout title="Sign In" description="Sign in to manage your projects and submissions.">
       <div
@@ -158,9 +167,11 @@ export default function LoginPage() {
             <Button
               type="submit"
               loading={busy}
+              disabled={Boolean(cooldown.seconds)}
               className="h-[50px] w-full rounded-xl bg-[#3b82f6] text-base font-semibold"
             >
-              Sign In as {roleLabel} <ArrowRight />
+              {cooldown.seconds ? `Try again in ${cooldown.seconds}s` : `Sign In as ${roleLabel}`}{" "}
+              <ArrowRight />
             </Button>
             <Button
               type="button"
@@ -187,7 +198,7 @@ export default function LoginPage() {
         </form>
       </div>
       <p className="mt-6 text-center text-sm text-slate-500">
-        Have an invitation?{" "}
+        New here?{" "}
         <Link href="/register" className="font-semibold text-blue-600 hover:underline">
           Registration
         </Link>

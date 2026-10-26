@@ -4,7 +4,6 @@ export type {
   AuthState,
   LoginBody as LoginPayload,
   LoginResponse,
-  RefreshTokenResponse,
   ProfileUser,
   ProfileResponse,
 } from "./auth.types";

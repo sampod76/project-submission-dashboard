@@ -61,10 +61,10 @@ export default function Page() {
           </div>
           <div className="mx-auto w-full max-w-lg lg:max-w-xl">
             <Image
-              src="/doctor.webp"
-              alt="Doctor working at a laptop with an illustration of doctor, patient and follow-up management"
-              width={1254}
-              height={1254}
+              src="/auth-banner.webp"
+              alt="Project submission workspace illustration"
+              width={1536}
+              height={1024}
               sizes="(max-width: 1023px) 90vw, 50vw"
               priority
               className="h-auto w-full object-contain"

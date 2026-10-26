@@ -1,5 +1,6 @@
 import type { ApiResponse, DateTime, Role, UUID } from "./common.types";
 import type { PasswordChangeResult, UserProfile } from "./user.types";
+export type { SessionUser, SessionResponse, RefreshTokenResponse } from "../../docs/api/API_CONTRACTS";
 
 export interface RegisteredStudentFields {
   id: UUID;
@@ -36,13 +37,6 @@ export interface AuthTokens {
   user: AuthUser;
 }
 
-export interface SessionUser {
-  id: UUID;
-  email: string;
-  role: Role;
-  isActive: boolean;
-}
-
 export interface RegisterBody {
   email: string;
   password: string;
@@ -65,11 +59,7 @@ export interface RefreshTokenBody {
   refreshToken?: string;
 }
 
-export type RefreshTokenResponse = ApiResponse<AuthTokens>;
-
 export type LogoutResponse = ApiResponse<null>;
-
-export type SessionResponse = ApiResponse<SessionUser>;
 
 export type GetAuthProfileResponse = ApiResponse<UserProfile>;
 

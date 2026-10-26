@@ -1,17 +1,16 @@
 "use client";
-import { toast } from "sonner";
 
 import useAuth from "@/hooks/useAuth";
 import RouteState from "@/components/shared/route-state";
 
 import { Button } from "@/components/ui/button";
+import { dashboardForRole } from "@/lib/auth-routing";
 
 export default function ForbiddenPage() {
-  const { logout } = useAuth();
+  const { user, logout, isLoggingOut } = useAuth();
 
   async function handleLogout() {
     await logout();
-    toast.success("Logged out successfully");
   }
 
   return (
@@ -19,10 +18,10 @@ export default function ForbiddenPage() {
       statusCode="403"
       title="Access Denied"
       description="You don't have permission to access this page. Return to your dashboard or sign out to use another account."
-      homeHref="/dashboard"
+      homeHref={dashboardForRole(user?.role)}
       homeLabel="Go to Dashboard"
     >
-      <Button onClick={handleLogout} variant="outline" size="lg">
+      <Button onClick={handleLogout} loading={isLoggingOut} variant="outline" size="lg">
         Logout
       </Button>
     </RouteState>

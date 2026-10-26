@@ -1,5 +1,4 @@
 export enum tagTypes {
-  session = "session",
   profile = "profile",
   user = "user",
   admin = "admin",

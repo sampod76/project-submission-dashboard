@@ -1,57 +1,43 @@
 import { configureStore, createListenerMiddleware, isAnyOf } from "@reduxjs/toolkit";
 import { baseApi } from "./api/baseApi";
-import authReducer from "./features/auth/authSlice";
-import { login, logout } from "./features/auth/authSlice";
-
+import authReducer, { login, logout } from "./features/auth/authSlice";
+import { setupListeners } from "@reduxjs/toolkit/query";
 import {
   FLUSH,
   PAUSE,
   PERSIST,
-  persistReducer,
-  persistStore,
   PURGE,
   REGISTER,
   REHYDRATE,
+  persistReducer,
+  persistStore,
 } from "redux-persist";
-
 import createWebStorage from "redux-persist/lib/storage/createWebStorage";
 
-const createNoopStorage = () => {
-  return {
-    getItem(_key: string) {
-      void _key;
-      return Promise.resolve(null);
-    },
-    setItem(_key: string, value: string) {
-      return Promise.resolve(value);
-    },
-    removeItem(_key: string) {
-      void _key;
-      return Promise.resolve();
-    },
-  };
-};
+const storage =
+  typeof window !== "undefined"
+    ? createWebStorage("local")
+    : {
+        getItem: () => Promise.resolve(null),
+        setItem: () => Promise.resolve(),
+        removeItem: () => Promise.resolve(),
+      };
 
-const storage = typeof window !== "undefined" ? createWebStorage("local") : createNoopStorage();
-
-const authPersistConfig = {
-  key: "project-submission-dashboard:auth",
-  version: 1,
-
-  migrate: async (state: import("redux-persist").PersistedState) =>
-    state?._persist.version === 1 ? state : undefined,
-  storage,
-  whitelist: ["user", "accessToken", "refreshToken", "expiresIn"],
-};
-
-const persistedUserReducer = persistReducer(authPersistConfig, authReducer);
-const authListener = createListenerMiddleware();
-
-export const store = configureStore({
-  reducer: {
-    [baseApi.reducerPath]: baseApi.reducer,
-    auth: persistedUserReducer,
+const persistedAuthReducer = persistReducer(
+  {
+    key: "project-submission-dashboard:auth",
+    version: 2,
+    storage,
+    // Tokens stay in memory; the HttpOnly backend cookie restores sessions.
+    whitelist: [],
+    migrate: async () => undefined,
   },
+  authReducer,
+);
+
+const authListener = createListenerMiddleware();
+export const store = configureStore({
+  reducer: { [baseApi.reducerPath]: baseApi.reducer, auth: persistedAuthReducer },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
@@ -61,20 +47,18 @@ export const store = configureStore({
       .prepend(authListener.middleware)
       .concat(baseApi.middleware),
 });
-
 export const persistor = typeof window !== "undefined" ? persistStore(store) : null;
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
-
+if (typeof window !== "undefined") setupListeners(store.dispatch);
 const startAppListening = authListener.startListening.withTypes<RootState, AppDispatch>();
 startAppListening({
   matcher: isAnyOf(login, logout),
   effect: (action, api) => {
     const before = api.getOriginalState().auth.user;
     const after = api.getState().auth.user;
-    if (logout.match(action) || before?.id !== after?.id || before?.role !== after?.role) {
+    if (logout.match(action) || before?.id !== after?.id || before?.role !== after?.role)
       api.dispatch(baseApi.util.resetApiState());
-    }
   },
 });

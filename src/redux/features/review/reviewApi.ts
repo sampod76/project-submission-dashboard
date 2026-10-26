@@ -20,12 +20,10 @@ export const reviewApi = baseApi.injectEndpoints({
         method: "POST",
         body,
       }),
-      invalidatesTags: [
-        tagTypes.review,
-        tagTypes.submission,
-        tagTypes.submissionStatistics,
-        tagTypes.auditLog,
-      ],
+      invalidatesTags: (result, error) =>
+        result || error?.status === 409
+          ? [tagTypes.review, tagTypes.submission, tagTypes.submissionStatistics, tagTypes.auditLog]
+          : [],
     }),
     getReviews: builder.query<
       ListReviewsResponse,

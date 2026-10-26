@@ -3,13 +3,15 @@
 import Link from "next/link";
 import { ArrowRight, UserPlus } from "lucide-react";
 import { useAppSelector } from "@/redux/hooks";
+import { dashboardForRole } from "@/lib/auth-routing";
 
 export default function LandingActions() {
-  const isLoggedIn = useAppSelector((state) => Boolean(state.auth.accessToken || state.auth.user));
+  const { accessToken, user } = useAppSelector((state) => state.auth);
+  const isLoggedIn = Boolean(accessToken && user);
   return (
     <div className="mt-8 flex flex-wrap items-stretch gap-4">
       <Link
-        href={isLoggedIn ? "/dashboard" : "/login"}
+        href={isLoggedIn ? dashboardForRole(user?.role) : "/login"}
         className="inline-flex min-h-16 items-center justify-center gap-4 rounded-full bg-blue-600 px-7 py-3 text-lg font-semibold text-white shadow-lg shadow-blue-600/20 transition-colors hover:bg-blue-700 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-600"
       >
         <span
@@ -27,7 +29,7 @@ export default function LandingActions() {
         <UserPlus aria-hidden="true" className="text-2xl" />
         <span className="text-left">
           <span className="block text-base font-semibold">Registration</span>
-          <span className="block text-sm text-slate-500">Invitation Only</span>
+          <span className="block text-sm text-slate-500">Create a Student account</span>
         </span>
       </Link>
     </div>

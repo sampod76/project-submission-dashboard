@@ -34,7 +34,7 @@ type DataTableProps<TData> = {
   pagination?: boolean;
   minWidth?: number;
 };
-export default function DataTable<TData extends { _id: string }>({
+export default function DataTable<TData extends { _id: string } | { id: string }>({
   data = [],
   columns,
   meta,
@@ -61,7 +61,7 @@ export default function DataTable<TData extends { _id: string }>({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
-    getRowId: (row) => row._id,
+    getRowId: (row) => ("id" in row ? row.id : row._id),
     defaultColumn: { enableSorting: false },
     manualPagination: true,
     manualSorting: true,
@@ -178,7 +178,7 @@ export default function DataTable<TData extends { _id: string }>({
                   variant="ghost"
                   size="icon"
                   aria-label="Previous page"
-                  disabled={!table.getCanPreviousPage()}
+                  disabled={pending || !table.getCanPreviousPage()}
                   onClick={() => table.previousPage()}
                 >
                   <ChevronLeft />
@@ -194,6 +194,7 @@ export default function DataTable<TData extends { _id: string }>({
                     size="icon"
                     aria-label={`Page ${number}`}
                     aria-current={number === page ? "page" : undefined}
+                    disabled={pending}
                     onClick={() => table.setPageIndex(number - 1)}
                   >
                     {number}
@@ -205,7 +206,7 @@ export default function DataTable<TData extends { _id: string }>({
                   variant="ghost"
                   size="icon"
                   aria-label="Next page"
-                  disabled={!table.getCanNextPage()}
+                  disabled={pending || page >= 1000000 || !table.getCanNextPage()}
                   onClick={() => table.nextPage()}
                 >
                   <ChevronRight />

@@ -11,7 +11,6 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 interface HeaderProps {
   collapsed: boolean;
@@ -29,12 +28,12 @@ export default function AppHeader({
 }: HeaderProps) {
   const router = useRouter();
   const isMobile = useMobile();
-  const { user, logout } = useAuth();
+  const { user, logout, isLoggingOut } = useAuth();
+  const profileUrl = user?.role === "STUDENT" ? "/student/profile" : user?.role === "MENTOR" ? "/mentor/profile" : "/dashboard/profile";
   const displayName = user?.name || user?.email || "User";
   const displayRole = user?.role || "User";
   async function handleLogout() {
     await logout();
-    toast.success("Logged out successfully");
   }
   return (
     <header className="dashboard-header sticky top-0 z-[999] flex h-20 items-center justify-between border-b border-slate-200/70">
@@ -81,16 +80,22 @@ export default function AppHeader({
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onSelect={() => router.push("/dashboard/profile")}>
+            <DropdownMenuItem onSelect={() => router.push(profileUrl)}>
               <User className="mr-2 h-4 w-4" />
               {displayName}
             </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => router.push("/dashboard/settings")}>
+            <DropdownMenuItem
+              onSelect={() =>
+                router.push(
+                  user?.role === "STUDENT" ? "/student/profile#password" : user?.role === "MENTOR" ? "/mentor/settings" : "/dashboard/settings",
+                )
+              }
+            >
               <Pencil className="mr-2 h-4 w-4" />
               Change Password
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onSelect={() => void handleLogout()}>
+            <DropdownMenuItem disabled={isLoggingOut} onSelect={() => void handleLogout()}>
               <LogOut className="mr-2 h-4 w-4" />
               Sign Out
             </DropdownMenuItem>

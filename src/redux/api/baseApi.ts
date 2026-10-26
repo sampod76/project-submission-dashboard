@@ -18,7 +18,7 @@ const publicUrls = new Set([
   "/auth/refresh-token",
   `${config.host}/health`,
 ]);
-const rawBaseQuery = fetchBaseQuery({
+const fetchQuery = fetchBaseQuery({
   baseUrl: `${config.host}/api/v1`,
   credentials: "include",
   prepareHeaders: (headers, api) => {
@@ -30,6 +30,24 @@ const rawBaseQuery = fetchBaseQuery({
     return headers;
   },
 });
+
+const rawBaseQuery: typeof fetchQuery = async (args, api, extraOptions) => {
+  const result = await fetchQuery(args, api, extraOptions);
+  if (result.error?.status === 429) {
+    const header = result.meta?.response?.headers.get("retry-after");
+    const delay = header
+      ? Number.isFinite(Number(header))
+        ? Number(header)
+        : (Date.parse(header) - Date.now()) / 1000
+      : 60;
+    const data = result.error.data;
+    result.error.data = {
+      ...(typeof data === "object" && data !== null ? data : {}),
+      retryAfterSeconds: Math.max(1, Math.ceil(Number.isFinite(delay) ? delay : 60)),
+    };
+  }
+  return result;
+};
 
 type RawResult = Awaited<ReturnType<typeof rawBaseQuery>>;
 type ExtraOptions = Parameters<typeof rawBaseQuery>[2];
@@ -120,6 +138,10 @@ const baseQueryWithReAuth: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQue
   }
 
   if (isPublic) return result;
+  if (result.error?.status === 403 && typeof result.error.data === "object" && result.error.data !== null && "message" in result.error.data && result.error.data.message === "Account is inactive") {
+    api.dispatch(logout());
+    return result;
+  }
   if (
     current.user?.id !== started.user?.id ||
     current.user?.role !== started.user?.role ||

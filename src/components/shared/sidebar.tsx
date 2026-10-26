@@ -8,6 +8,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
+import { studentNavigation } from "@/constants/student-navigation";
+import { mentorNavigation } from "@/constants/mentor-navigation";
+import useAuth from "@/hooks/useAuth";
+import { LogOut } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export const SIDEBAR_WIDTH = 220;
 export const COLLAPSED_SIDEBAR_WIDTH = 80;
@@ -16,6 +21,8 @@ interface SidebarProps {
   collapsed: boolean;
   isMobile?: boolean;
   onMenuSelect?: () => void;
+  student?: boolean;
+  mentor?: boolean;
 }
 
 interface SidebarMenuItem {
@@ -99,9 +106,9 @@ function SidebarLinks({
           {item.url ? (
             <Link
               href={normalizeUrl(item.url)}
-              title={collapsed ? String(item.key).split("/").pop() : undefined}
+              title={collapsed ? String(item.label) : undefined}
               aria-current={item.key === selectedKey ? "page" : undefined}
-              aria-label={collapsed ? String(item.key).split("/").pop() : undefined}
+              aria-label={collapsed ? String(item.label) : undefined}
               onClick={onMenuSelect}
               className={`flex h-10 items-center gap-3 rounded-lg px-4 text-[15px] transition-colors hover:bg-blue-50 hover:text-primary ${item.key === selectedKey ? "bg-[#eaf3ff] font-medium text-primary" : "text-foreground"} ${collapsed ? "justify-center px-0" : ""}`}
             >
@@ -130,12 +137,19 @@ function SidebarLinks({
   );
 }
 
-export default function Sidebar({ collapsed, isMobile = false, onMenuSelect }: SidebarProps) {
+export default function Sidebar({
+  collapsed,
+  isMobile = false,
+  onMenuSelect,
+  student = false,
+  mentor = false,
+}: SidebarProps) {
   const pathname = usePathname();
 
   const user = useAppSelector((state) => state.auth.user);
 
-  const sidebarGroups = sidebarData
+  const { logout, isLoggingOut } = useAuth();
+  const sidebarGroups = (student ? studentNavigation : mentor ? mentorNavigation : sidebarData)
     .map((group) => ({
       ...group,
       menuItems: buildMenuItems(group.items, user?.role),
@@ -161,7 +175,7 @@ export default function Sidebar({ collapsed, isMobile = false, onMenuSelect }: S
       }}
     >
       <Link
-        href="/dashboard"
+        href={student ? "/student/dashboard" : mentor ? "/mentor/dashboard" : "/dashboard"}
         aria-label="Dashboard home"
         onClick={onMenuSelect}
         className="logo flex h-20 shrink-0 items-center justify-center py-4"
@@ -207,6 +221,21 @@ export default function Sidebar({ collapsed, isMobile = false, onMenuSelect }: S
           </div>
         ))}
       </div>
+      {(student || mentor) && (
+        <div className="border-t p-3">
+          <Button
+            variant="ghost"
+            title="Logout"
+            aria-label="Logout"
+            className="w-full justify-start gap-3"
+            loading={isLoggingOut}
+            onClick={() => void logout()}
+          >
+            <LogOut />
+            {!collapsed && "Logout"}
+          </Button>
+        </div>
+      )}
     </aside>
   );
 }

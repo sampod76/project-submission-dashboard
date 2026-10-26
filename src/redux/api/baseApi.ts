@@ -74,7 +74,9 @@ async function refreshSession(
     );
     if (getAuthState(api).sessionVersion !== started) return staleSession();
     if (!isTokenResponse(result.data)) {
-      api.dispatch(logout());
+      // Anonymous cookie bootstrap must return its 401; resetting the API here
+      // would abort that mutation before the sign-in screen can observe it.
+      if (getAuthState(api).accessToken || getAuthState(api).user) api.dispatch(logout());
       if (!result.error) {
         return { error: { status: "CUSTOM_ERROR", error: "Invalid token response." } };
       }
@@ -111,7 +113,6 @@ const baseQueryWithReAuth: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQue
           ? { authorization: `Bearer ${accessToken}` }
           : undefined;
 
-    api.dispatch(logout());
     return rawBaseQuery(
       {
         url,
@@ -138,7 +139,13 @@ const baseQueryWithReAuth: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQue
   }
 
   if (isPublic) return result;
-  if (result.error?.status === 403 && typeof result.error.data === "object" && result.error.data !== null && "message" in result.error.data && result.error.data.message === "Account is inactive") {
+  if (
+    result.error?.status === 403 &&
+    typeof result.error.data === "object" &&
+    result.error.data !== null &&
+    "message" in result.error.data &&
+    result.error.data.message === "Account is inactive"
+  ) {
     api.dispatch(logout());
     return result;
   }

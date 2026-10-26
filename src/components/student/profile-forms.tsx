@@ -58,7 +58,12 @@ export function OwnProfileForm({ profile }: { profile: ProfileFields }) {
     }
     try {
       const result = await update(body).unwrap();
-      const updated = result.data.role === "MENTOR" ? result.data.mentor : result.data.role === "ADMIN" ? result.data.admin : result.data.student;
+      const updated =
+        result.data.role === "MENTOR"
+          ? result.data.mentor
+          : result.data.role === "ADMIN"
+            ? result.data.admin
+            : result.data.student;
       if (updated && user)
         dispatch(setUser({ ...user, name: `${updated.firstName} ${updated.lastName}` }));
       form.reset(values);

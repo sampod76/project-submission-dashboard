@@ -76,24 +76,24 @@ export default function RegisterPage() {
   if (accessToken && user) return <Loader />;
   return (
     <AuthLayout
-      title="Create your Student account"
-      description="Submit your work, track its progress, and keep your projects together."
+      title="Create Student account"
+      description="Submit projects and track your progress."
     >
       <form noValidate aria-label="Student Registration" onSubmit={form.handleSubmit(submit)}>
-        <fieldset disabled={busy} className="min-w-0">
-          <div className="grid gap-x-4 sm:grid-cols-2">
-            <Field label="First name" error={errors.firstName?.message}>
+        <fieldset disabled={busy} className="min-w-0 space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="First name" error={errors.firstName?.message} className="mb-0">
               <Input
                 {...register("firstName")}
                 autoComplete="given-name"
                 placeholder="First name"
               />
             </Field>
-            <Field label="Last name" error={errors.lastName?.message}>
+            <Field label="Last name" error={errors.lastName?.message} className="mb-0">
               <Input {...register("lastName")} autoComplete="family-name" placeholder="Last name" />
             </Field>
           </div>
-          <Field label="Email" error={errors.email?.message}>
+          <Field label="Email" error={errors.email?.message} className="mb-0">
             <Input
               {...register("email")}
               type="email"
@@ -101,34 +101,37 @@ export default function RegisterPage() {
               placeholder="you@example.com"
             />
           </Field>
-          <Field label="Phone (optional)" error={errors.phone?.message}>
-            <Input
-              {...register("phone")}
-              type="tel"
-              autoComplete="tel"
-              placeholder="Your phone number"
-            />
-          </Field>
-          <Field label="Gender (optional)" error={errors.gender?.message}>
-            <Input
-              {...register("gender")}
-              autoComplete="sex"
-              placeholder="Self describe, or leave blank"
-            />
-          </Field>
-          <Field label="Password" error={errors.password?.message}>
-            <PasswordInput
-              {...register("password", { deps: "confirmPassword" })}
-              autoComplete="new-password"
-            />
-          </Field>
-          <p className="-mt-2 mb-4 text-xs text-muted-foreground">
-            8–72 characters, with an uppercase letter, a lowercase letter, and a number. Maximum 72
-            UTF-8 bytes.
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Phone (optional)" error={errors.phone?.message} className="mb-0">
+              <Input
+                {...register("phone")}
+                type="tel"
+                autoComplete="tel"
+                placeholder="Your phone number"
+              />
+            </Field>
+            <Field label="Gender (optional)" error={errors.gender?.message} className="mb-0">
+              <Input {...register("gender")} autoComplete="sex" placeholder="Optional" />
+            </Field>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Field label="Password" error={errors.password?.message} className="mb-0">
+              <PasswordInput
+                {...register("password", { deps: "confirmPassword" })}
+                autoComplete="new-password"
+              />
+            </Field>
+            <Field
+              label="Confirm password"
+              error={errors.confirmPassword?.message}
+              className="mb-0"
+            >
+              <PasswordInput {...register("confirmPassword")} autoComplete="new-password" />
+            </Field>
+          </div>
+          <p className="text-xs leading-5 text-muted-foreground">
+            8–72 characters with uppercase, lowercase, and a number. Maximum 72 UTF-8 bytes.
           </p>
-          <Field label="Confirm password" error={errors.confirmPassword?.message}>
-            <PasswordInput {...register("confirmPassword")} autoComplete="new-password" />
-          </Field>
           {errors.root?.message && (
             <p role="alert" className="mb-4 text-sm text-destructive">
               {errors.root.message}
@@ -144,7 +147,7 @@ export default function RegisterPage() {
           </Button>
         </fieldset>
       </form>
-      <p className="mt-6 text-center text-sm text-muted-foreground">
+      <p className="mt-4 text-center text-sm text-muted-foreground">
         Already registered?{" "}
         <Link href="/login" className="font-semibold text-primary hover:underline">
           Sign in

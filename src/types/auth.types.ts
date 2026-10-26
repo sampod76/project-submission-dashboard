@@ -1,6 +1,10 @@
 import type { ApiResponse, DateTime, Role, UUID } from "./common.types";
 import type { PasswordChangeResult, UserProfile } from "./user.types";
-export type { SessionUser, SessionResponse, RefreshTokenResponse } from "../../docs/api/API_CONTRACTS";
+export type {
+  SessionUser,
+  SessionResponse,
+  RefreshTokenResponse,
+} from "../../docs/api/API_CONTRACTS";
 
 export interface RegisteredStudentFields {
   id: UUID;

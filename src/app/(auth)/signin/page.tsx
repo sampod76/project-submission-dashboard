@@ -109,7 +109,7 @@ export default function LoginPage() {
       <div
         role="tablist"
         aria-label="Sign in role"
-        className="mb-6 grid grid-cols-3 gap-1 rounded-xl bg-sky-50 p-1"
+        className="mb-4 grid grid-cols-3 gap-1 rounded-lg bg-sky-50 p-1"
       >
         {roles.map((role, index) => (
           <button
@@ -123,7 +123,7 @@ export default function LoginPage() {
             disabled={busy}
             onClick={() => selectRole(role.value)}
             onKeyDown={(event) => handleTabKeyDown(event, index)}
-            className={`min-h-11 rounded-lg px-2 py-2 text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-500 disabled:opacity-50 ${selectedRole === role.value ? "bg-white text-blue-600 shadow-sm" : "text-slate-500 hover:text-blue-600"}`}
+            className={`min-h-10 rounded-md px-2 py-2 text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-500 disabled:opacity-50 ${selectedRole === role.value ? "bg-white text-blue-600 shadow-sm" : "text-slate-500 hover:text-blue-600"}`}
           >
             {role.label}
           </button>
@@ -137,26 +137,24 @@ export default function LoginPage() {
           aria-label={`${roleLabel} Sign In`}
         >
           <fieldset disabled={busy} className="min-w-0">
-            <Field label="Email" error={errors.email?.message} className="mb-5">
+            <Field label="Email" error={errors.email?.message} className="mb-3">
               <Input
                 {...register("email")}
                 type="email"
                 leadingIcon={<User className="text-slate-500" />}
                 placeholder="Enter your email address"
                 autoComplete="username"
-                className="rounded-xl"
-                style={{ height: 50, fontSize: 15, borderColor: "#cbd5e1" }}
+                className="h-10 rounded-lg border-slate-300"
               />
             </Field>
-            <Field label="Password" error={errors.password?.message} className="mb-6">
+            <Field label="Password" error={errors.password?.message} className="mb-4">
               <PasswordInput
                 key={selectedRole}
                 {...register("password")}
                 leadingIcon={<LockKeyhole className="text-slate-500" />}
                 placeholder="Enter your password"
                 autoComplete="current-password"
-                className="rounded-xl"
-                style={{ height: 50, fontSize: 15, borderColor: "#cbd5e1" }}
+                className="h-10 rounded-lg border-slate-300"
               />
             </Field>
             {errors.root?.message && (
@@ -168,7 +166,7 @@ export default function LoginPage() {
               type="submit"
               loading={busy}
               disabled={Boolean(cooldown.seconds)}
-              className="h-[50px] w-full rounded-xl bg-[#3b82f6] text-base font-semibold"
+              className="h-11 w-full rounded-lg bg-[#3b82f6] text-sm font-semibold"
             >
               {cooldown.seconds ? `Try again in ${cooldown.seconds}s` : `Sign In as ${roleLabel}`}{" "}
               <ArrowRight />
@@ -178,7 +176,7 @@ export default function LoginPage() {
               variant="outline"
               disabled={!demoCredentials}
               aria-describedby="demo-login-status"
-              className="mt-3 min-h-11 w-full whitespace-normal rounded-xl"
+              className="mt-2 min-h-10 w-full whitespace-normal rounded-lg"
               onClick={() => {
                 if (demoCredentials) form.reset(demoCredentials);
               }}
@@ -189,15 +187,15 @@ export default function LoginPage() {
           <p
             id="demo-login-status"
             role="status"
-            className="mt-3 text-center text-xs leading-5 text-slate-500"
+            className="mt-2 text-center text-xs leading-5 text-slate-500"
           >
             {demoCredentials
-              ? "Fill the demo details, then select Sign In when you are ready."
+              ? "Auto Fill adds demo details. Select Sign In to continue."
               : `${roleLabel} demo login is unavailable. Please enter your account credentials.`}
           </p>
         </form>
       </div>
-      <p className="mt-6 text-center text-sm text-slate-500">
+      <p className="mt-4 text-center text-sm text-slate-500">
         New here?{" "}
         <Link href="/register" className="font-semibold text-blue-600 hover:underline">
           Registration

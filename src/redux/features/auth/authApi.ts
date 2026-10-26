@@ -2,7 +2,7 @@ import { baseApi } from "../../api/baseApi";
 import { legacyUnavailable } from "../../api/legacy-unavailable";
 import { tagTypes } from "@/redux/tag-types";
 import { getAuthState, isTokenResponse } from "../../api/auth-session";
-import { login } from "./authSlice";
+import { login, logout } from "./authSlice";
 import type { Role } from "@/types/common.types";
 import type {
   ChangePasswordLegacyBody,
@@ -66,6 +66,16 @@ export const authApi = baseApi.injectEndpoints({
     }),
     logout: builder.mutation<LogoutResponse, void>({
       query: () => ({ url: "/auth/logout", method: "POST" }),
+      async onQueryStarted(_arg, { dispatch, getState, queryFulfilled }) {
+        const actorId = getAuthState({ getState }).user?.id;
+        try {
+          await queryFulfilled;
+        } catch {
+          // Local sign-out still completes when cookie cleanup fails.
+        } finally {
+          if (getAuthState({ getState }).user?.id === actorId) dispatch(logout());
+        }
+      },
     }),
     getAuthProfile: builder.query<GetAuthProfileResponse, void>({
       query: () => ({ url: "/auth/profile", method: "GET" }),

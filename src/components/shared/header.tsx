@@ -29,7 +29,12 @@ export default function AppHeader({
   const router = useRouter();
   const isMobile = useMobile();
   const { user, logout, isLoggingOut } = useAuth();
-  const profileUrl = user?.role === "STUDENT" ? "/student/profile" : user?.role === "MENTOR" ? "/mentor/profile" : "/dashboard/profile";
+  const profileUrl =
+    user?.role === "STUDENT"
+      ? "/student/profile"
+      : user?.role === "MENTOR"
+        ? "/mentor/profile"
+        : "/dashboard/profile";
   const displayName = user?.name || user?.email || "User";
   const displayRole = user?.role || "User";
   async function handleLogout() {
@@ -87,7 +92,11 @@ export default function AppHeader({
             <DropdownMenuItem
               onSelect={() =>
                 router.push(
-                  user?.role === "STUDENT" ? "/student/profile#password" : user?.role === "MENTOR" ? "/mentor/settings" : "/dashboard/settings",
+                  user?.role === "STUDENT"
+                    ? "/student/profile#password"
+                    : user?.role === "MENTOR"
+                      ? "/mentor/settings"
+                      : "/dashboard/settings",
                 )
               }
             >

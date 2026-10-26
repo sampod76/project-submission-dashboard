@@ -5,7 +5,7 @@ export const authHeroImage = {
   width: 1536,
   height: 1024,
   sizes:
-    "(max-width: 1023px) 1px, (min-width: 1564px) 799px, (min-width: 1280px) calc(55vw - 61.6px), calc(55vw - 52.8px)",
+    "(max-width: 1023px) 1px, (min-width: 1344px) 608px, (min-width: 1280px) calc(50vw - 64px), calc(50vw - 52px)",
 };
 
 export const authLogoImage = {
@@ -13,7 +13,7 @@ export const authLogoImage = {
   alt: "Project Submission Dashboard",
   width: 128,
   height: 128,
-  sizes: "(min-width: 1280px) 152px, 128px",
+  sizes: "(min-width: 640px) 48px, 40px",
 };
 
 export const pageBackgroundImage = "/background.webp";

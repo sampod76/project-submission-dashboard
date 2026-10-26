@@ -76,7 +76,13 @@ export default function DashLayout({
           setCollapsed={setCollapsed}
           mobileOpen={mobileOpen}
           setMobileOpen={setMobileOpen}
-          pageTitle={student ? "Student workspace" : mentor ? "Mentor workspace" : "Project Submission Dashboard"}
+          pageTitle={
+            student
+              ? "Student workspace"
+              : mentor
+                ? "Mentor workspace"
+                : "Project Submission Dashboard"
+          }
         />
         <main
           className="dashboard-content"
@@ -91,7 +97,10 @@ export default function DashLayout({
               aria-label="Breadcrumb"
               className="flex flex-wrap items-center gap-2 border-b bg-white px-4 py-3 text-sm text-muted-foreground sm:px-8"
             >
-              <Link className="hover:text-primary" href={mentor ? "/mentor/dashboard" : "/student/dashboard"}>
+              <Link
+                className="hover:text-primary"
+                href={mentor ? "/mentor/dashboard" : "/student/dashboard"}
+              >
                 {mentor ? "Mentor" : "Student"}
               </Link>
               {pathname
@@ -109,7 +118,9 @@ export default function DashLayout({
                             : part.charAt(0).toUpperCase() + part.slice(1)}
                       </span>
                     ) : (
-                      <Link href={`/${mentor ? "mentor" : "student"}/${parts.slice(0, index + 1).join("/")}`}>
+                      <Link
+                        href={`/${mentor ? "mentor" : "student"}/${parts.slice(0, index + 1).join("/")}`}
+                      >
                         {part.charAt(0).toUpperCase() + part.slice(1)}
                       </Link>
                     )}

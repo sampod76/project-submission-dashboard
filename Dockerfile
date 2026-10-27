@@ -38,11 +38,6 @@ RUN pnpm install --frozen-lockfile --prefer-offline --prod=false --store-dir="$P
 
 COPY . .
 
-ARG NEXT_PUBLIC_BASE_URL
-
-ENV NEXT_PUBLIC_BASE_URL=${NEXT_PUBLIC_BASE_URL}
-
-RUN test -n "$NEXT_PUBLIC_BASE_URL" || (echo "NEXT_PUBLIC_BASE_URL missing during build" >&2 && exit 1)
 RUN pnpm build
 
 FROM node:22.18.0-slim AS runner

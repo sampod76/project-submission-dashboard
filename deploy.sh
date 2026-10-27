@@ -27,3 +27,5 @@ docker builder prune -f
 log "Frontend deployed successfully"
 
 exit 0
+
+# sudo chmod +x deploy.sh

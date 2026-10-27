@@ -42,9 +42,6 @@ body {
 }
 
 :root {
-  --border-radius-sm: 2px;
-  --border-radius: 4px;
-  --border-radius-lg: 6px;
   --color-primary: #007bff;
   --color-primary-hover: #0056b3;
   --color-secondary: #f4f6f8;
@@ -180,34 +177,6 @@ body {
   background: var(--color-bg-container);
   border-radius: var(--border-radius-lg);
 }
-.doctor-compact-modal {
-  padding: 16px 20px;
-}
-.doctor-compact-form [data-slot="field"] {
-  margin-bottom: 12px;
-}
-.doctor-compact-form input,
-.doctor-compact-form button {
-  min-height: 38px;
-}
-.patient-compact-filters input,
-.patient-compact-filters button[role="combobox"],
-.patient-compact-filters button[aria-haspopup="dialog"] {
-  height: 38px;
-  border-radius: 8px;
-  border-color: #e5e7eb;
-  background: #fafafa;
-}
-.patient-compact-filters input:focus,
-.patient-compact-filters button:focus-visible {
-  border-color: #ff7a00;
-  background: white;
-}
 [data-sonner-toaster] {
   z-index: 1200 !important;
-}
-@media (max-width: 639px) {
-  .doctor-compact-modal {
-    padding: 16px;
-  }
 }

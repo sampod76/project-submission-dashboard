@@ -1,4 +1,3 @@
-// Shared by the rendered images and early preloads so responsive requests match.
 export const authHeroImage = {
   src: "/auth-banner.webp?v=d06e9ce06cf5",
   alt: "",

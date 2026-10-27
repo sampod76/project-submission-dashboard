@@ -1,76 +1,65 @@
-name: Project Submission Dashboard CI and GHCR Build
+name: Project Submission Backend Deploy (GHCR + SSH)
 
 on:
   push:
     branches: [main]
-  pull_request:
-    branches: [main]
-  workflow_dispatch:
 
 concurrency:
-  group: project-submission-dashboard:${{ github.workflow }}:${{ github.ref }}
+  group: project-submission-dashboard:${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
   contents: read
+  packages: write
 
 jobs:
-  validate:
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22.18.0
-      - name: Install dependencies
-        run: |
-          corepack enable
-          corepack prepare pnpm@10.19.0 --activate
-          pnpm install --frozen-lockfile
-      - name: TypeScript
-        run: pnpm exec tsc --noEmit
-      - name: ESLint
-        run: pnpm lint
-
-  publish:
-    needs: validate
-    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && github.repository == 'sampod76/project-submission-dashboard'
+  deploy:
     runs-on: ubuntu-latest
     timeout-minutes: 60
-    permissions:
-      contents: read
-      packages: write
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      - name: Validate build configuration
-        env:
-          NEXT_PUBLIC_BASE_URL: ${{ vars.NEXT_PUBLIC_BASE_URL }}
-        run: |
-          test -n "$NEXT_PUBLIC_BASE_URL" || {
-            echo "Set repository variable NEXT_PUBLIC_BASE_URL to the confirmed Project Submission backend origin" >&2
-            exit 1
-          }
+
       - name: Login to GHCR
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Build and push Docker image
-        env:
-          NEXT_PUBLIC_BASE_URL: ${{ vars.NEXT_PUBLIC_BASE_URL }}
         run: |
           set -Eeuo pipefail
-          export DOCKER_BUILDKIT=1
-          IMAGE="ghcr.io/sampod76/project-submission-dashboard:latest"
-          docker build \
-            --build-arg NEXT_PUBLIC_BASE_URL="$NEXT_PUBLIC_BASE_URL" \
-            -t "$IMAGE" .
-          docker push "$IMAGE"
 
-      # SSH deployment is intentionally absent until the new VPS, checkout,
-      # host port and domain have been confirmed. Never reuse an old SSH target.
+          export DOCKER_BUILDKIT=1
+
+          OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+
+          IMAGE="ghcr.io/${OWNER}/project-submission-dashboard:latest"
+
+          echo "Building Docker image: ${IMAGE}"
+
+          docker build -t "${IMAGE}" .
+          docker push "${IMAGE}"
+
+      - name: Deploy Backend
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+          script: |
+            set -Eeuo pipefail
+
+            cd ~/apps/sampod/project-submission-dashboard
+
+            bash deploy.sh
+
+      # - name: Verify production CORS preflight
+      #   if: vars.API_BASE_URL != '' && vars.WEB_ORIGIN != ''
+      #   env:
+      #     API_BASE_URL: ${{ vars.API_BASE_URL }}
+      #     WEB_ORIGIN: ${{ vars.WEB_ORIGIN }}
+      #   run: node scripts/check-cors.cjs "$API_BASE_URL" "$WEB_ORIGIN"

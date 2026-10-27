@@ -10,9 +10,10 @@ services:
       # NEXT_PUBLIC_BASE_URL is embedded by the GHCR build, not configured at runtime.
       HOSTNAME: 0.0.0.0
       PORT: 3000
+      NEXT_PUBLIC_BASE_URL: https://api-project-submission.iblossomlearn.org
 
     ports:
-      - "${APP_HOST_PORT:?APP_HOST_PORT must be configured}:3000"
+      - "3105:3000"
 
     restart: unless-stopped
 

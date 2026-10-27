@@ -38,6 +38,10 @@ RUN pnpm install --frozen-lockfile --prefer-offline --prod=false --store-dir="$P
 
 COPY . .
 
+# Public browser configuration must be available to Next.js during compilation.
+ARG NEXT_PUBLIC_BASE_URL
+ENV NEXT_PUBLIC_BASE_URL=${NEXT_PUBLIC_BASE_URL}
+
 RUN pnpm build
 
 FROM node:22.18.0-slim AS runner

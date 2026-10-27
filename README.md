@@ -8,6 +8,8 @@ Use the repository's existing pnpm dependencies. Set `NEXT_PUBLIC_BASE_URL` in `
 
 Student, Mentor, and Admin autofill buttons are enabled in both development and production for this assignment. They fill the public demo accounts defined in `src/config/demo-login.ts`; the user still selects Sign In to submit the form.
 
+Docker builds require `NEXT_PUBLIC_BASE_URL` at build time because Next.js embeds it in the browser bundle. The GHCR workflow uses the GitHub Actions repository variable `NEXT_PUBLIC_BASE_URL`, defaulting to `https://api-project-submission.iblossomlearn.org`. For a manual build, run `docker build --build-arg NEXT_PUBLIC_BASE_URL=https://api-project-submission.iblossomlearn.org -t project-submission-dashboard .`. Changing the runtime Compose environment does not update the embedded URL; rebuild the image to change it. Local Compose builds accept this value from the shell or an explicit `--env-file`.
+
 ## A. Completed Admin features
 
 - Protected `/admin/*` workspace, verified Admin login redirect, collapsible desktop sidebar, phone drawer, breadcrumbs, user menu and logout. Authentication verifies the server-returned identity rather than treating a login tab as authorization.

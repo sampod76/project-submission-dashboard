@@ -29,6 +29,8 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push Docker image
+        env:
+          NEXT_PUBLIC_BASE_URL: ${{ vars.NEXT_PUBLIC_BASE_URL || 'https://api-project-submission.iblossomlearn.org' }}
         run: |
           set -Eeuo pipefail
 
@@ -40,7 +42,7 @@ jobs:
 
           echo "Building Docker image: ${IMAGE}"
 
-          docker build -t "${IMAGE}" .
+          docker build --build-arg NEXT_PUBLIC_BASE_URL="${NEXT_PUBLIC_BASE_URL}" -t "${IMAGE}" .
           docker push "${IMAGE}"
 
       - name: Deploy Backend

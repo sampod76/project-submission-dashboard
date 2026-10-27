@@ -5,4 +5,4 @@ export type {
   ListAuditLogsResponse,
   GetAuditLogParams,
   GetAuditLogResponse,
-} from "../../docs/api/API_CONTRACTS";
+} from "@/types/api-contracts";

@@ -25,4 +25,4 @@ export type {
   UpdateUserResponse,
   DeleteUserParams,
   DeleteUserResponse,
-} from "../../docs/api/API_CONTRACTS";
+} from "@/types/api-contracts";

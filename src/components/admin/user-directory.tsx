@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { ColumnDef } from "@tanstack/react-table";
 import { useGetUsersQuery } from "@/redux/features/user/userApi";
-import type { ListUsersQuery, UserListItem } from "../../../docs/api/API_CONTRACTS";
+import type { ListUsersQuery, UserListItem } from "@/types/api-contracts";
 import { userFiltersSchema, type UserFilterValues } from "@/schema/admin.schema";
 import {
   RequestError,

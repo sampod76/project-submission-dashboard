@@ -13,4 +13,4 @@ export type {
   UpdateAdminResponse,
   DeleteAdminParams,
   DeleteAdminResponse,
-} from "../../docs/api/API_CONTRACTS";
+} from "@/types/api-contracts";

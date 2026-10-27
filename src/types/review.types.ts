@@ -9,4 +9,4 @@ export type {
   ListReviewsParams,
   ListReviewsQuery,
   ListReviewsResponse,
-} from "../../docs/api/API_CONTRACTS";
+} from "@/types/api-contracts";

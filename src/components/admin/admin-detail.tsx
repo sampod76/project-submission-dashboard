@@ -11,7 +11,7 @@ import {
   useUpdateAdminMutation,
   useDeleteAdminMutation,
 } from "@/redux/features/admin/adminApi";
-import type { AdminDetail as AdminProfile, UpdateAdminBody } from "../../../docs/api/API_CONTRACTS";
+import type { AdminDetail as AdminProfile, UpdateAdminBody } from "@/types/api-contracts";
 import { adminProfileSchema, type AdminProfileValues } from "@/schema/admin.schema";
 import { apiStatus, apiErrorMessage, mapFormError } from "@/utils/api-error";
 import { useRequestCooldown } from "@/hooks/use-request-cooldown";

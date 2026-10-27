@@ -1,4 +1,4 @@
-import type { Role, UpdateUserBody, UserRecord } from "../../docs/api/API_CONTRACTS";
+import type { Role, UpdateUserBody, UserRecord } from "@/types/api-contracts";
 import type { AdminAccountValues } from "@/schema/admin.schema";
 
 export const canManageAccount = (

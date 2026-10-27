@@ -18,4 +18,4 @@ export type {
   UpdateSubmissionResponse,
   DeleteSubmissionParams,
   DeleteSubmissionResponse,
-} from "../../docs/api/API_CONTRACTS";
+} from "@/types/api-contracts";

@@ -1,1 +1,1 @@
-export type { HealthResult, HealthResponse } from "../../docs/api/API_CONTRACTS";
+export type { HealthResult, HealthResponse } from "@/types/api-contracts";

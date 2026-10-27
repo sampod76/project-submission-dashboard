@@ -4,4 +4,4 @@ export type {
   ListMentorsResponse,
   CreateMentorBody,
   CreateMentorResponse,
-} from "../../docs/api/API_CONTRACTS";
+} from "@/types/api-contracts";

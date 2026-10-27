@@ -1,4 +1,4 @@
-import type { AuthUser } from "../../docs/api/API_CONTRACTS";
+import type { AuthUser } from "@/types/api-contracts";
 export type {
   AuthUser,
   AuthTokens,
@@ -16,7 +16,7 @@ export type {
   ChangePasswordLegacyResponse,
   SessionUser,
   SessionResponse,
-} from "../../docs/api/API_CONTRACTS";
+} from "@/types/api-contracts";
 
 export type AuthSessionUser = AuthUser & {
   userId: string;

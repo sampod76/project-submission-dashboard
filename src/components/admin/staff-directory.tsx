@@ -11,7 +11,7 @@ import type {
   ListAdminsQuery,
   MentorRecord,
   ListMentorsQuery,
-} from "../../../docs/api/API_CONTRACTS";
+} from "@/types/api-contracts";
 import {
   adminDirectoryFiltersSchema,
   type AdminDirectoryFilterValues,

@@ -1,142 +1,73 @@
 # Project Submission Dashboard
 
-Next.js App Router frontend for Student submissions, Mentor review, and Admin account/profile management. Phase 3 implementation and final integration audit: **26 October 2026**.
+A role-based platform where Students submit projects and track their status. Mentors and Admins review submissions and manage accounts through dedicated dashboards.
 
-## Run locally
+## Tech Stack
 
-Use the repository's existing pnpm dependencies. Set `NEXT_PUBLIC_BASE_URL` in `.env.local` to the backend origin, for example `http://localhost:5000`, without `/api/v1`. Then run `pnpm install` and `pnpm dev`. Production validation uses `pnpm build`; `pnpm start` serves the result on port 3000. The backend is a separate application. Development writes generated files to `.next-dev`; production builds and `next start` use `.next`. This keeps production validation from overwriting a running development server’s chunks. Restart a running production server after rebuilding it.
+- Next.js and React
+- TypeScript
+- Tailwind CSS and shadcn/ui
+- Redux Toolkit and RTK Query
 
-Student, Mentor, and Admin autofill buttons are enabled in both development and production for this assignment. They fill the public demo accounts defined in `src/config/demo-login.ts`; the user still selects Sign In to submit the form.
+## Getting Started
 
-Docker builds require `NEXT_PUBLIC_BASE_URL` at build time because Next.js embeds it in the browser bundle. The GHCR workflow uses the GitHub Actions repository variable `NEXT_PUBLIC_BASE_URL`, defaulting to `https://api-project-submission.iblossomlearn.org`. For a manual build, run `docker build --build-arg NEXT_PUBLIC_BASE_URL=https://api-project-submission.iblossomlearn.org -t project-submission-dashboard .`. Changing the runtime Compose environment does not update the embedded URL; rebuild the image to change it. Local Compose builds accept this value from the shell or an explicit `--env-file`.
+Clone the repository and install dependencies with pnpm:
 
-## A. Completed Admin features
-
-- Protected `/admin/*` workspace, verified Admin login redirect, collapsible desktop sidebar, phone drawer, breadcrumbs, user menu and logout. Authentication verifies the server-returned identity rather than treating a login tab as authorization.
-- Real submission totals/status aggregates, oldest pending queue, User/Mentor totals from pagination metadata, recent audit activity, management links and API connectivity.
-- Mentor creation with required gender, validated names/email/password, optional phone/bio, duplicate-email mapping, pending/cooldown states and active Admin-profile prerequisite. Mentor directory supports documented search, sorting and server pagination, profile inspection, and linked User-account management.
-- Admin creation, searchable/filterable/paginated directory, detail, profile editing and confirmed profile deletion. Admin profile IDs remain separate from User IDs. Profile deletion explicitly preserves the User account and can disable profile-dependent features.
-- Shared Student directory/profile inspection/account management and a complete User directory. User filters include email search, role, active status, comma-separated User IDs and inclusive UTC creation dates. Managers can edit email/password, activate/deactivate or soft-delete accounts; only Admin can change role. Self-deactivation is disabled; successful self-role changes end the old frontend session, and self-deletion clears it.
-- Shared submission queue/detail, pending-only approve/reject, optional feedback and submission-level paginated review history. Successful reviews and HTTP 409 conflicts refresh detail, list, statistics, history and audit caches. No unsupported submission editing/deletion is exposed to managers.
-- Full Admin audit list/detail with exact action/entity/actor filters, UTC date filters, createdAt sorting and server pagination. Mentor retains the server-enforced own-review scope. Snapshots render as text with recursive credential redaction.
-- Own Admin profile editing through shared User APIs, password changes and current-device logout. Header identity updates after profile changes; missing matching profiles have explicit unavailable states.
-
-## B. Final role coverage
-
-| Role    | Implemented workflows                                                                                                                                       | Isolation                                                                                                                            |
-| ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| Student | Registration, login, own dashboard/counts, create/list/detail/edit/delete pending owned submissions, profile, password, logout                              | No management queue/statistics hooks, review-history requests, directories or audit UI. Counts use filtered owned-list `meta.total`. |
-| Mentor  | Login, statistics/queue, review decisions/history, Student directory/account actions, own review audits, profile/password/logout                            | Staff/User-role actions are unavailable; backend staff and cross-actor audit denials verified.                                       |
-| Admin   | Staff/profile/User management, Student directory, real statistics, submission review/history, complete documented audit visibility, profile/password/logout | Protected shared shell and server-authenticated role checks; Student and Mentor direct Admin URLs redirect to their own dashboards.  |
-
-Tokens stay in Redux memory. The HttpOnly refresh cookie restores the session on reload; protected calls use bearer access tokens and `credentials: include`. Concurrent 401 failures coordinate one refresh and retry once. Session/profile reads verify current active identity before rendering protected content. Logout clears account caches even when server cookie cleanup fails. No unsupported multi-session/revoke/reset workflow is presented.
-
-## C. Complete 35-endpoint API coverage matrix
-
-The inventory below was reconciled against the **Complete integration checklist** in `docs/api/FRONTEND_INTEGRATION_GUIDE.md`. Wire types are re-exported from `docs/api/API_CONTRACTS.ts`; there is one RTK definition per documented endpoint. Public app pages are role-gated where appropriate. The backend remains responsible for authorization.
-
-**Status scope:** Fully Implemented means the endpoint has an actual UI/workflow consumer and appropriate contract handling. Internal / Compatibility Integration means an internal session operation or an intentionally optional legacy alias, with no redundant visible page. The two legacy alias hooks are exported for compatibility and intentionally unmounted in the primary UI; live endpoint responses were verified. All 35 method/path pairs returned successful local backend responses. This does not mean every mutation was submitted through a browser form.
-
-| Endpoint                                                        | RTK Query Hook                                    | Page / Component                                                         | Authorized Roles                                 | Status                               |
-| --------------------------------------------------------------- | ------------------------------------------------- | ------------------------------------------------------------------------ | ------------------------------------------------ | ------------------------------------ |
-| **Register** — `POST /api/v1/auth/register`                     | `useRegisterMutation`                             | /register                                                                | Public                                           | Fully Implemented                    |
-| **Login** — `POST /api/v1/auth/login`                           | `useLoginMutation`                                | /login, /signin; verified role redirect                                  | Public                                           | Fully Implemented                    |
-| **RefreshToken** — `POST /api/v1/auth/refresh-token`            | `useRefreshTokenMutation / refreshToken.initiate` | SessionBoundary; coordinated 401 recovery                                | Refresh credentials                              | Internal / Compatibility Integration |
-| **Logout** — `POST /api/v1/auth/logout`                         | `useLogoutMutation`                               | useAuth; sidebar, header, settings                                       | ADMIN, MENTOR, STUDENT                           | Fully Implemented                    |
-| **Session** — `GET /api/v1/auth/session`                        | `useGetSessionQuery`                              | SessionBoundary; fresh identity before role layouts                      | ADMIN, MENTOR, STUDENT                           | Internal / Compatibility Integration |
-| **GetAuthProfile** — `GET /api/v1/auth/profile`                 | `useGetAuthProfileQuery`                          | Optional exported compatibility alias; primary UI uses GetOwnProfile     | ADMIN, MENTOR, STUDENT                           | Internal / Compatibility Integration |
-| **ChangePasswordLegacy** — `POST /api/v1/auth/change-password`  | `useChangePasswordLegacyMutation`                 | Optional exported compatibility alias; primary UI uses ChangePassword    | ADMIN, MENTOR, STUDENT                           | Internal / Compatibility Integration |
-| **GetOwnProfile** — `GET /api/v1/users/profile`                 | `useGetOwnProfileQuery`                           | SessionBoundary; all role profile screens; staff creation prerequisite   | ADMIN, MENTOR, STUDENT                           | Fully Implemented                    |
-| **UpdateOwnProfile** — `PATCH /api/v1/users/profile`            | `useUpdateOwnProfileMutation`                     | OwnProfileForm; all role profile screens                                 | ADMIN, MENTOR, STUDENT                           | Fully Implemented                    |
-| **ChangePassword** — `PATCH /api/v1/users/change-password`      | `useChangePasswordMutation`                       | Shared password form; role settings/profile                              | ADMIN, MENTOR, STUDENT                           | Fully Implemented                    |
-| **UpdateUserStatus** — `PATCH /api/v1/users/:id/status`         | `useUpdateUserStatusMutation`                     | StudentAccount shared account editor; confirmed status action            | ADMIN; MENTOR for STUDENT targets                | Fully Implemented                    |
-| **ListUsers** — `GET /api/v1/users`                             | `useGetUsersQuery`                                | UserDirectory; StudentDirectory account tab; Admin overview              | ADMIN; MENTOR sees STUDENT only                  | Fully Implemented                    |
-| **GetUser** — `GET /api/v1/users/:id`                           | `useGetUserByIdQuery`                             | /admin/users/[id], /admin/mentors/[id], role Student account pages       | ADMIN; MENTOR for STUDENT targets                | Fully Implemented                    |
-| **UpdateUser** — `PATCH /api/v1/users/:id`                      | `useUpdateUserMutation`                           | Shared account editor; email/password; ADMIN-only role assignment        | ADMIN; MENTOR for STUDENT targets, no role field | Fully Implemented                    |
-| **DeleteUser** — `DELETE /api/v1/users/:id`                     | `useDeleteUserMutation`                           | Shared account editor; confirmed soft deletion and self-session cleanup  | ADMIN; MENTOR for STUDENT targets                | Fully Implemented                    |
-| **CreateAdmin** — `POST /api/v1/admins`                         | `useCreateAdminMutation`                          | /admin/admins/new; StaffCreate                                           | ADMIN                                            | Fully Implemented                    |
-| **ListAdmins** — `GET /api/v1/admins`                           | `useGetAdminsQuery`                               | /admin/admins; AdminDirectory                                            | ADMIN                                            | Fully Implemented                    |
-| **GetAdmin** — `GET /api/v1/admins/:id`                         | `useGetAdminByIdQuery`                            | /admin/admins/[id]; AdminDetail                                          | ADMIN                                            | Fully Implemented                    |
-| **UpdateAdmin** — `PATCH /api/v1/admins/:id`                    | `useUpdateAdminMutation`                          | AdminDetail profile editor; profile UUID                                 | ADMIN                                            | Fully Implemented                    |
-| **DeleteAdmin** — `DELETE /api/v1/admins/:id`                   | `useDeleteAdminMutation`                          | AdminDetail; confirmed profile-only deletion                             | ADMIN                                            | Fully Implemented                    |
-| **ListMentors** — `GET /api/v1/mentors`                         | `useGetMentorsQuery`                              | /admin/mentors; MentorDirectory and profile dialog; Admin overview       | ADMIN                                            | Fully Implemented                    |
-| **CreateMentor** — `POST /api/v1/mentors`                       | `useCreateMentorMutation`                         | /admin/mentors/new; StaffCreate                                          | ADMIN with active Admin profile                  | Fully Implemented                    |
-| **ListStudents** — `GET /api/v1/students`                       | `useGetStudentsQuery`                             | /admin/students, /mentor/students; shared directory/profile dialog       | ADMIN, MENTOR                                    | Fully Implemented                    |
-| **CreateSubmission** — `POST /api/v1/submissions`               | `useCreateSubmissionMutation`                     | /student/submissions/new; SubmissionForm                                 | STUDENT with active profile                      | Fully Implemented                    |
-| **ListSubmissions** — `GET /api/v1/submissions`                 | `useGetSubmissionsQuery`                          | Shared management dashboards, queues and review-history project selector | ADMIN, MENTOR                                    | Fully Implemented                    |
-| **ListMySubmissions** — `GET /api/v1/submissions/my`            | `useGetMySubmissionsQuery`                        | Student dashboard, owned counts and submission list                      | STUDENT                                          | Fully Implemented                    |
-| **SubmissionStatistics** — `GET /api/v1/submissions/statistics` | `useGetSubmissionStatisticsQuery`                 | ManagementDashboard for Admin and Mentor; see local mismatch below       | ADMIN, MENTOR per supplied docs                  | Fully Implemented                    |
-| **GetSubmission** — `GET /api/v1/submissions/:id`               | `useGetSubmissionByIdQuery`                       | All role submission details; ownership gate for Student                  | ADMIN, MENTOR; STUDENT owner only                | Fully Implemented                    |
-| **UpdateSubmission** — `PATCH /api/v1/submissions/:id`          | `useUpdateSubmissionMutation`                     | Student detail editor; SubmissionForm                                    | STUDENT owner, PENDING only                      | Fully Implemented                    |
-| **DeleteSubmission** — `DELETE /api/v1/submissions/:id`         | `useDeleteSubmissionMutation`                     | Student detail; confirmed deletion                                       | STUDENT owner, PENDING only                      | Fully Implemented                    |
-| **CreateReview** — `POST /api/v1/submissions/:id/reviews`       | `useCreateReviewMutation`                         | Shared SubmissionDetail review confirmation form                         | ADMIN, MENTOR; PENDING only                      | Fully Implemented                    |
-| **ListReviews** — `GET /api/v1/submissions/:id/reviews`         | `useGetReviewsQuery`                              | Shared ReviewHistory; parent submission required                         | ADMIN, MENTOR                                    | Fully Implemented                    |
-| **ListAuditLogs** — `GET /api/v1/audit-logs`                    | `useGetAuditLogsQuery`                            | Shared AuditActivity; Admin overview                                     | ADMIN full visible scope; MENTOR own review logs | Fully Implemented                    |
-| **GetAuditLog** — `GET /api/v1/audit-logs/:id`                  | `useGetAuditLogByIdQuery`                         | Shared AuditDetail, with safe JSON rendering/redaction                   | ADMIN full visible scope; MENTOR own review logs | Fully Implemented                    |
-| **Health** — `GET /health`                                      | `useGetHealthQuery`                               | AdminOverview connectivity diagnostic                                    | Public                                           | Fully Implemented                    |
-
-### Contract and cache audit
-
-All eight lists use the documented query keys, response `data` arrays, and `{page, limit, total}` metadata. Server sorting is enabled only on supported columns. Filter changes reset page; out-of-range results can return to page 1. No page's row count is treated as a global total. Search precedence and exact-value filters follow each endpoint's contract. Dates are valid `YYYY-MM-DD` UTC days, with range validation. Audit has no generic search or arbitrary sorting; reviews accept only parent ID, page and limit.
-
-Staff forms send no role, owner ID, confirmation-password or creator ID fields. New passwords enforce 8–72 characters, upper/lowercase/digit, and 72 UTF-8 bytes. Profile updates omit unchanged fields and send null only where supported. Admin profile writes and account writes use their respective UUIDs; Mentor/Student management links always carry User IDs. Safe external links reject non-HTTP(S) URLs and embedded credentials.
-
-Staff creation refreshes staff/User directories. Account status changes refresh linked directories, target account/profile and visible audits; generic User edits do not claim to create audit records. User deletion refreshes submission visibility/statistics and directories. Profile-name changes refresh profile/directories/reviewer names. Review success/409 refreshes all review dependencies. Submission edits/deletions also refresh owned-list counts and management statistics on success/409. Mutation responses containing credentials are reset by forms; logout/account changes isolate caches between users. Server/internal 5xx details are replaced with general UI errors. Form fields accept one React element as the slotted control; optional help text is rendered separately through `Field.description` and linked with `aria-describedby`. This prevents the Account role dropdown/help text from crashing the shared account screens.
-
-## D. Final routes
-
-| Area    | Routes                                                                                                                                                                                                                                                                                                                                                                                                              |
-| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Public  | `/`, `/login`, `/signin`, `/register`, `/403`                                                                                                                                                                                                                                                                                                                                                                       |
-| Student | `/student` → `/student/dashboard`; `/student/dashboard`, `/student/submissions`, `/student/submissions/new`, `/student/submissions/[id]`, `/student/profile` (profile/password settings)                                                                                                                                                                                                                            |
-| Mentor  | `/mentor` → `/mentor/dashboard`; `/mentor/dashboard`, `/mentor/submissions`, `/mentor/submissions/[id]`, `/mentor/reviews`, `/mentor/students`, `/mentor/students/[id]`, `/mentor/audit-logs`, `/mentor/audit-logs/[id]`, `/mentor/profile`, `/mentor/settings`                                                                                                                                                     |
-| Admin   | `/admin` → `/admin/dashboard`; `/admin/dashboard`, `/admin/admins`, `/admin/admins/new`, `/admin/admins/[id]`, `/admin/mentors`, `/admin/mentors/new`, `/admin/mentors/[id]`, `/admin/students`, `/admin/students/[id]`, `/admin/users`, `/admin/users/[id]`, `/admin/submissions`, `/admin/submissions/[id]`, `/admin/reviews`, `/admin/audit-logs`, `/admin/audit-logs/[id]`, `/admin/profile`, `/admin/settings` |
-
-`/admin/admins/[id]` uses an **Admin profile UUID**. Mentor/Student account routes use **User UUIDs**, not profile UUIDs. Their profile information is inspected from directory dialogs because no individual Mentor/Student profile-read endpoint exists. Review-history pages select a submission rather than calling a fabricated global history endpoint or issuing N+1 requests. Legacy `/dashboard` and medical routes are removed and resolve to the application not-found state.
-
-## E. Files created and modified
-
-- Added `src/app/admin/*` route wrappers, role layout and loading/error/not-found states; `src/constants/admin-navigation.ts`.
-- Added `src/components/admin/admin-overview.tsx`, `admin-detail.tsx`, `staff-create.tsx`, `staff-directory.tsx`, and `user-directory.tsx`; `src/schema/admin.schema.ts`; `src/lib/admin.ts`.
-- Extracted shared `management-dashboard.tsx` and `own-profile-page.tsx` from existing Mentor pages. Extended existing Mentor queue/detail/account/directory/audit components with a workspace argument while retaining Mentor defaults and restricted scope.
-- Updated shared shell/sidebar/header/breadcrumb/error navigation, authenticated Admin redirect, account self-role lifecycle, submission conflict invalidation and safe API error formatting. Corrected Student dashboard use of the privileged statistics hook.
-- Replaced duplicated wire DTO declarations in `src/types/*.types.ts` with canonical contract re-exports. Removed obsolete legacy `getProfile` and medical API stubs/UI; kept generic UI infrastructure. Historical medical schema fixtures/tests remain isolated from active routes and APIs.
-- Enabled assignment demo autofill consistently in development and production. Versioned the existing replacement auth illustration URL to avoid serving a cached medical illustration on login/landing/error screens; preserved the supplied artwork.
-- Added `tests/admin.test.ts`, `tests/account-render.test.ts`, `src/redux/api/__tests__/admin-workflow.test.ts`, and `scripts/verify-admin-live.mjs`; updated role assertions in existing Student/Mentor tests. Unignored API contracts/tests so required source inputs and regression checks are included in the reviewable work.
-- Updated this README with the complete implementation and verification report. Existing asset/route/test cleanup present in the workspace was preserved; no backend code was changed by this implementation.
-
-## F. Validation results
-
-| Check                    | Result                                                                                                                                                                                                                                                                            |
-| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `pnpm exec tsc --noEmit` | Passed                                                                                                                                                                                                                                                                            |
-| `pnpm lint`              | Passed, no warnings/errors                                                                                                                                                                                                                                                        |
-| `pnpm build`             | Passed, production routes generated                                                                                                                                                                                                                                               |
-| `pnpm test`              | 25/25 passed, including existing available tests and the shared account-screen rendering regression                                                                                                                                                                               |
-| `pnpm test:api`          | 3/3 passed: contract/ID/cache checks, review success/409 dependency refresh, coordinated 401 recovery, logout/cache isolation, returned-role login validation and self-role session cleanup                                                                                       |
-| Local backend            | 35/35 documented method/path pairs returned successful responses; nine workflow groups passed on `http://localhost:5000`                                                                                                                                                          |
-| Browser                  | All three role logins/logout, correct dashboard redirects, signed-out protection, Student/Mentor direct Admin-route denial, cookie-based reload restoration, Admin primary pages, Mentor creation required validation, and phone drawer verified on the local production frontend |
-| Responsive               | Mentor creation, User directory and audit list checked at 390×844, 768×1024 and 1280×720; document width stayed within viewport; desktop collapse and phone drawer/navigation checked                                                                                             |
-
-The live harness verifies real requests, strict bodies, duplicate email/repository conflicts, ownership and role denials, pending-only mutation/review transitions, Admin/Mentor decisions, repeated-review 409, accurate aggregate deltas, directory/queue pagination/filtering, missing-profile behavior, inactive sessions, profile/password APIs, full-vs-own audit scope, profile-only deletion, account deletion and refresh-cookie/logout headers. Synthetic accounts were soft-deleted during cleanup; retained reviews/audit history and soft-deleted records are expected backend history. Seeded account credentials/profiles were not changed.
-
-Re-run local live verification only against a disposable local database, using Admin credentials from environment variables. The sibling backend env file may supply its local seed credentials:
-
-```powershell
-$env:ALLOW_ADMIN_LIVE_WRITES = '1'
-node --env-file=../Server_ProjectSubmission/.env scripts/verify-admin-live.mjs
+```bash
+git clone https://github.com/sampod76/project-submission-dashboard.git
+cd project-submission-dashboard
+pnpm install
 ```
 
-Alternatively set `ADMIN_TEST_EMAIL`, `ADMIN_TEST_PASSWORD` and optional `ADMIN_TEST_ORIGIN`. The harness refuses non-local origins. No credentials are written to its output. It intentionally performs test writes and leaves backend soft-deletion/history records.
+Create `.env.local` in the project root:
 
-Browser screenshots: [Admin desktop](docs/verification/admin-dashboard-desktop.png), [Admin phone](docs/verification/admin-dashboard-mobile.png).
+```env
+NEXT_PUBLIC_BASE_URL=http://localhost:5000
+```
 
-## G. Remaining limitations and verification boundaries
+Run the backend separately. This variable points to its base URL; do not include `/api/v1`.
 
-1. **Documented/runtime mismatch:** the supplied reference/contracts/guide authorize SubmissionStatistics for Admin/Mentor. The current sibling backend route also authorizes Student and its service scopes counts to that Student's User ID. A live Student request returned 200 and its owned total, not management totals. The frontend follows supplied documentation and uses ListMySubmissions metadata for Student counts. The documentation owners should reconcile that permission change; backend code was not modified here.
-2. No manager endpoint edits Mentor/Student profile names, gender or bio, or reads an individual Mentor/Student profile. Supported directory profile dialogs and User-account actions are implemented instead. User role assignment does not create/restore a profile; the UI confirms this limitation and handles missing profiles. Admin profile deletion preserves the enabled User account, as documented.
-3. No global review-list, reopen/re-review, revision-required write, manager submission edit/delete, profile restore, password reset, or session revocation/list API exists. Those unsupported operations are not presented. Separate Student review history/feedback access is unauthorized.
-4. Production origins, cross-site/Secure cookie transport, multi-instance cache invalidation, external account changes during the backend cache TTL, and all possible browser/device combinations remain unverified. Browser checks cover navigation/validation/session/role behavior; they do not submit every management mutation through its form. Mutation contracts were exercised through RTK tests and real local API requests.
-5. Backend logout/password changes do not revoke existing JWTs. Repository uniqueness can race without a database constraint. The UI prevents repeated actions and refreshes review conflicts, but cannot change these backend guarantees. No unrelated backend changes, deployment, commit or push was performed.
+Start the frontend:
 
-No documented Admin UI operation remains blocked in this local setup. The limitations above are unsupported backend capabilities or deployment/test boundaries, not features claimed as completed.
+```bash
+pnpm dev
+```
+
+Open [http://localhost:3000](http://localhost:3000).
+
+## Demo Login Credentials
+
+| Role    | Email              | Password     |
+| ------- | ------------------ | ------------ |
+| Student | student1@gmail.com | St11223344?  |
+| Mentor  | mentor@gmail.com   | Me11223344?  |
+| Admin   | admin@gmail.com    | Ae11223344?  |
+
+The login page provides demo account autofill for each role. Select a role, autofill the credentials, then select Sign In. These accounts must exist in the connected backend.
+
+## Key Features
+
+**Student**
+
+- Register and sign in.
+- Submit projects; edit or delete owned submissions while pending.
+- Track submission status from a personal dashboard.
+
+**Mentor**
+
+- View submission statistics and search or filter the review queue.
+- Approve or reject pending projects, add feedback, and view review history.
+- View Student profiles and manage Student accounts.
+
+**Admin**
+
+- View dashboard statistics and audit activity.
+- Create Mentor and Admin accounts, manage users, and assign roles.
+- Review projects and browse submission history.
+
+## Live Application & Backend
+
+- [Live application](https://project-submission.iblossomlearn.org)
+- [Backend API](https://api-project-submission.iblossomlearn.org)
+
+The backend runs as a separate service. Its GitHub repository URL is not listed in this frontend project.
